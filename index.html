@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N0COWL</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦉</text></svg>">
+    <style>
+        /* --- GLOBAL THEME VARIABLES --- */
+        :root {
+            /* DEFAULT: Cyber Original */
+            --bg-color: #050507; 
+            --panel-bg: rgba(10, 12, 16, 0.85); 
+            --panel-border: #1f2229;
+            --grid-color: rgba(255, 255, 255, 0.03);
+            
+            --text-main: #e0e0e0;
+            --text-muted: #6b7280;
+            
+            --accent-primary: #00f0ff; /* Cyan */
+            --accent-secondary: #ff0055; /* Pink */
+            --razer-green: #00FF00;
+            
+            --success-color: #39ff14; 
+            --danger-color: var(--accent-secondary);
+            --warning-color: #fcee0a;
+        }
+
+        /* THEME: Industrial Flare (Taupe/Orange) */
+        body.theme-industrial {
+            --bg-color: #252525; 
+            --panel-bg: rgba(37, 37, 37, 0.85); 
+            --panel-border: #7a706b;
+            --grid-color: rgba(122, 112, 107, 0.1);
+            
+            --text-main: #c2cbd2;
+            --text-muted: #a0a6ac;
+            
+            --accent-primary: #f38200; /* Orange */
+            --accent-secondary: #eeb052; /* Gold */
+            --razer-green: #f38200; /* Replaces Razer green with Orange for consistency */
+            
+            --success-color: #eeb052; 
+            --danger-color: #f38200;
+            --warning-color: #eeb052;
+        }
+
+        /* THEME: Vapor Networks (Fuchsia/Purple/Teal/Green) */
+        body.theme-vapor {
+            --bg-color: #120a17; /* Deep dark purple */
+            --panel-bg: rgba(26, 15, 33, 0.85); 
+            --panel-border: #5c2f70; /* Deep Purple */
+            --grid-color: rgba(92, 47, 112, 0.2);
+            
+            --text-main: #e6e6e6;
+            --text-muted: #957da3;
+            
+            --accent-primary: #fd65ff; /* Fuchsia */
+            --accent-secondary: #7cf14f; /* Neon Green */
+            --razer-green: #7cf14f; 
+            
+            --success-color: #b0dea4; /* Light Sage Green */
+            --danger-color: #fd65ff; /* Fuchsia */
+            --warning-color: #097381; /* Teal */
+        }
+
+        /* --- Futuristic Scrollbar --- */
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-left: 1px solid var(--panel-border);
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--accent-primary);
+            border: 3px solid var(--bg-color); 
+            border-radius: 0; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); }
+        ::-webkit-scrollbar-corner { background: var(--bg-color); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent-primary) var(--bg-color); }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: center center;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- Dynamic Network Background --- */
+        #networkCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none; 
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1; 
+            background: var(--panel-bg); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 30px 40px;
+            border: 1px solid var(--panel-border);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.9);
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+        }
+
+        /* --- Terminal Header --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            margin-top: 0;
+            position: relative;
+        }
+
+        .gear-btn-box {
+            width: 32px;
+            height: 32px;
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 18px;
+            color: var(--text-muted);
+            font-size: 16px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gear-btn-box:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        .app-branding {
+            display: flex;
+            align-items: center;
+            font-size: 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .brand-text { color: var(--text-main); letter-spacing: 2px; }
+
+        .brand-highlight {
+            background-color: var(--razer-green);
+            color: var(--bg-color); 
+            padding: 0 6px;
+            margin: -2px 6px; 
+            letter-spacing: 0;
+            box-shadow: 0 0 12px var(--razer-green);
+            transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .app-subtext {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 20px;
+            letter-spacing: 1px;
+            position: relative;
+            top: 2px;
+        }
+
+        /* --- Theme Settings Menu --- */
+        #settingsMenu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--accent-primary);
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+            z-index: 100;
+            min-width: 250px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .theme-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .theme-option:hover {
+            background-color: rgba(255,255,255,0.05);
+            border-color: var(--panel-border);
+            color: var(--text-main);
+        }
+        .theme-option.active {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            background-color: rgba(0,0,0,0.3);
+        }
+        .theme-swatch {
+            width: 12px; height: 12px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        /* --- DB Card --- */
+        .db-card {
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--panel-border);
+            border-left: 3px solid var(--accent-secondary);
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: border-color 0.5s ease;
+        }
+        .db-header {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--accent-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255,255,255,0.02);
+            text-transform: uppercase;
+        }
+        .db-header:hover { background-color: rgba(255,255,255,0.05); }
+        .db-chevron { transition: transform 0.3s ease; font-size: 12px; }
+        .db-chevron.open { transform: rotate(180deg); }
+        .db-content-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s; }
+        .db-content-wrapper.open { grid-template-rows: 1fr; }
+        .db-content { overflow: hidden; padding: 0 15px; }
+        .mapping-controls { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* --- Inputs --- */
+        .instructions {
+            background-color: rgba(255,255,255,0.02);
+            padding: 12px 15px;
+            border-left: 3px solid var(--accent-primary);
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+            transition: border-color 0.5s ease;
+        }
+
+        textarea {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+            padding: 12px;
+            font-family: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: inset 2px 0 0 var(--accent-primary);
+        }
+
+        #logInput { 
+            min-height: 180px; 
+            margin-bottom: 20px; 
+            white-space: pre; 
+            overflow-y: hidden; /* For Auto Expand */
+        }
+        #mappingInput { height: 100px; white-space: pre; }
+
+        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+
+        button {
+            font-family: inherit; border: none; cursor: pointer;
+            text-transform: uppercase; font-weight: bold; transition: all 0.2s;
+        }
+        button.secondary {
+            background-color: var(--panel-border); color: var(--bg-color);
+            padding: 6px 15px; font-size: 12px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        button.secondary:hover { background-color: var(--accent-secondary); }
+
+        button.small-btn {
+            padding: 6px 15px; font-size: 12px; background-color: transparent;
+            color: var(--danger-color); border: 1px solid var(--danger-color);
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        button.small-btn:hover { background-color: var(--danger-color); color: var(--bg-color); }
+
+        .btn-analyze {
+            background-color: var(--accent-primary); color: var(--bg-color);
+            padding: 10px 30px; font-size: 15px; letter-spacing: 2px;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+        .btn-analyze:hover {
+            background-color: var(--text-main);
+            box-shadow: 0 0 20px var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .btn-analyze:active { transform: translateY(1px); }
+        .btn-clicked { animation: cyber-glitch 0.3s linear; }
+        @keyframes cyber-glitch {
+            0% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); background-color: var(--accent-secondary); }
+            50% { clip-path: polygon(10px 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+            100% { background-color: var(--accent-primary); }
+        }
+
+        .alert {
+            padding: 10px 15px; margin-top: 20px; font-size: 13px; font-weight: bold;
+            display: none; border-left: 3px solid; background-color: rgba(0,0,0,0.5); text-transform: uppercase;
+        }
+        .alert-info { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .alert-success { border-color: var(--success-color); color: var(--success-color); display: none; margin-bottom: 15px;}
+
+        /* --- Data Table --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background-color: transparent; }
+        th { 
+            background-color: rgba(0, 0, 0, 0.3); font-weight: 600; color: var(--text-muted); 
+            font-size: 12px; text-transform: uppercase; padding: 12px 15px; text-align: left;
+            border-bottom: 2px solid var(--panel-border);
+        }
+        td {
+            padding: 15px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: top; background-color: rgba(0, 0, 0, 0.1);
+        }
+        tr { border-left: 2px solid transparent; transition: all 0.2s ease; }
+        tr:hover { border-left: 2px solid var(--accent-primary); background-color: rgba(255,255,255,0.02); }
+
+        .animated-row { opacity: 0; transform: translateX(-15px); animation: slideRightFade 0.4s forwards; }
+        @keyframes slideRightFade { to { opacity: 1; transform: translateX(0); } }
+
+        .status-down { color: var(--danger-color); font-weight: bold; }
+        .status-up { color: var(--success-color); font-weight: bold; }
+        .flap-1 { color: var(--success-color); font-weight: bold; font-size: 14px; }
+        .flap-2 { color: var(--warning-color); font-weight: bold; font-size: 14px; }
+        .flap-3 { color: var(--danger-color); font-weight: bold; font-size: 14px; }
+        .flap-critical { font-weight: bold; font-size: 14px; color: var(--danger-color); animation: cyber-pulse 1s infinite alternate; }
+        @keyframes cyber-pulse {
+            from { text-shadow: 0 0 5px rgba(255, 0, 0, 0.2); }
+            to { text-shadow: 0 0 15px var(--danger-color); }
+        }
+
+        .glow-accent1 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-primary); }
+        .glow-accent2 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-secondary); }
+
+        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: 12px; color: var(--text-muted); }
+        ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .instance-badge {
+            color: var(--bg-color); background-color: var(--text-muted); padding: 2px 6px; 
+            font-size: 11px; margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase;
+        }
+        .interval-badge {
+            color: var(--text-muted); font-size: 11px; margin-bottom: 6px; padding-left: 8px; 
+            border-left: 2px solid var(--accent-secondary); display: inline-block;
+        }
+        .site-badge {
+            font-size: 11px; padding: 2px 4px; background: rgba(0,0,0,0.5); 
+            border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="networkCanvas"></canvas>
+
+    <div class="container">
+        
+        <header class="app-header">
+            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="Theme Settings">⚙️</div>
+            
+            <div id="settingsMenu">
+                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">// UI SCHEMATICS</div>
+                <div class="theme-option active" onclick="setTheme('default', this)">
+                    <span class="theme-swatch" style="background:#00f0ff;"></span> CYBER ORIGINAL
+                </div>
+                <div class="theme-option" onclick="setTheme('industrial', this)">
+                    <span class="theme-swatch" style="background:#f38200;"></span> INDUSTRIAL FLARE
+                </div>
+                <div class="theme-option" onclick="setTheme('vapor', this)">
+                    <span class="theme-swatch" style="background:#fd65ff;"></span> VAPOR NETWORKS
+                </div>
+            </div>
+
+            <div class="app-branding">
+                <span class="brand-text">N0C</span>
+                <span class="brand-highlight">Ø</span>
+                <span class="brand-text">WL</span>
+                <span class="app-subtext">// OVERWATCH LINK-ANALYZER</span>
+            </div>
+        </header>
+        
+        <div class="db-card">
+            <div class="db-header" onclick="toggleDB()">
+                <span>[+] LOCAL DATA MAPPING PROTOCOL</span>
+                <span class="db-chevron" id="dbChevron">▼</span>
+            </div>
+            <div class="db-content-wrapper" id="dbContentWrapper">
+                <div class="db-content">
+                    <div class="mapping-controls">
+                        <p style="margin:0; font-size:12px; color:var(--text-muted);">
+                            > Mapping Definition Interface.<br>
+                            > Format: <code>[REGION DC/DIA] - [NICKNAME] - [router_hostname] - [IP] - [ISP/CARRIER]</code>
+                        </p>
+                        <textarea id="mappingInput" placeholder="[PH DC] - Manila Core - [PH-NOC-CER02] - [100.64.1.2] - [AT&T]
+[IN DIA] - Mumbai Edge - IN-NOC-IGW2001 - 192.168.10.1 - Singtel
+UnknownPeer - [10.19.0.4] - Lumen"></textarea>
+                        <div class="btn-group" style="margin-bottom: 0;">
+                            <button class="secondary" onclick="saveMappings()">commit_changes</button>
+                            <button class="small-btn" onclick="clearMappings()">flush_database</button>
+                        </div>
+                        <div id="mappingAlert" class="alert alert-success"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            > AWAITING BGP SYSLOG STREAM...<br>
+            > REQUIRED INPUTS: <code>sh log | i BGP-5-ADJ</code> AND <code>sh clock</code> (FOR TIME REFERENCE)
+        </div>
+
+        <textarea id="logInput" placeholder="> Input raw syslog output here...
+PH-PHX-CER1501#sh log | i BGP-5-ADJ
+Apr  5 07:51:12.150: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Down BFD adjacency down
+Apr  5 07:51:20.676: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Up
+PH-PHX-CER1501#sh clock
+16:02:54.588 UTC Sun Apr 5 2026"></textarea>
+        
+        <button id="analyzeBtn" class="btn-analyze" onclick="triggerAnalyze()">RUN_ANALYSIS // EXECUTE</button>
+        
+        <div id="timezoneAlert" class="alert alert-info"></div>
+        <div id="resultsArea"></div>
+    </div>
+
+    <script>
+        // --- THEME LOGIC ---
+        function toggleThemeMenu() {
+            const menu = document.getElementById('settingsMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function setTheme(themeName, element) {
+            // Update Body Class
+            document.body.className = '';
+            if (themeName !== 'default') {
+                document.body.classList.add(`theme-${themeName}`);
+            }
+            
+            // Save to Local Storage
+            localStorage.setItem('n0c_owl_theme', themeName);
+
+            // Update UI Selection
+            document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            // Force Canvas to pull new colors
+            updateCanvasColors();
+            toggleThemeMenu(); // close menu
+        }
+
+        // --- AUTO-EXPANDING TEXTAREA LOGIC ---
+        const logInputBox = document.getElementById('logInput');
+        logInputBox.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // --- BACKGROUND CANVAS ANIMATION ---
+        let particles = [];
+        let canvasColors = ['#00f0ff', '#ff0055']; // initial default
+
+        function updateCanvasColors() {
+            // Pull the current CSS variables for the active theme
+            const style = getComputedStyle(document.body);
+            const pColor = style.getPropertyValue('--accent-primary').trim() || '#00f0ff';
+            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#ff0055';
+            canvasColors = [pColor, sColor];
+            
+            // Update existing particles
+            particles.forEach(p => {
+                p.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
+            });
+        }
+
+        (function initCanvas() {
+            const canvas = document.getElementById('networkCanvas');
+            const ctx = canvas.getContext('2d');
+            let mouse = { x: null, y: null };
+            
+            const PARTICLE_COUNT = 80;
+            const CONNECT_DISTANCE = 130; 
+            const MOUSE_CONNECT_DISTANCE = 200; 
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+            window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+            class Particle {
+                constructor() { this.init(); }
+                init() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.6;
+                    this.vy = (Math.random() - 0.5) * 0.6;
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = this.color;
+                }
+            }
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) { particles.push(new Particle()); }
+            updateCanvasColors(); // Initialize colors based on active theme
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    let p1 = particles[i];
+                    p1.update();
+                    ctx.shadowBlur = 0; 
+                    
+                    for (let j = i + 1; j < PARTICLE_COUNT; j++) {
+                        let p2 = particles[j];
+                        let dx = p1.x - p2.x; let dy = p1.y - p2.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < CONNECT_DISTANCE) {
+                            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+                            let opacity = 1 - (dist / CONNECT_DISTANCE);
+                            
+                            // Convert hex to rgba for stroke style based on p1.color
+                            ctx.strokeStyle = p1.color; // Using full hex, adjusting alpha is tricky in pure hex so we use globalAlpha
+                            ctx.globalAlpha = opacity * 0.4;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                            ctx.globalAlpha = 1.0; // reset
+                        }
+                    }
+                    
+                    if (mouse.x !== null) {
+                        let dxMouse = p1.x - mouse.x; let dyMouse = p1.y - mouse.y;
+                        let distMouse = Math.sqrt(dxMouse*dxMouse + dyMouse*dyMouse);
+                        if (distMouse < MOUSE_CONNECT_DISTANCE) {
+                            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(mouse.x, mouse.y);
+                            let opacityMouse = 1 - (distMouse / MOUSE_CONNECT_DISTANCE);
+                            ctx.strokeStyle = p1.color;
+                            ctx.globalAlpha = opacityMouse * 0.6;
+                            ctx.lineWidth = 1.5;
+                            ctx.stroke();
+                            ctx.globalAlpha = 1.0;
+                        }
+                    }
+                    p1.draw(); 
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        // --- UI TOGGLES ---
+        function toggleDB() {
+            const wrapper = document.getElementById('dbContentWrapper');
+            const chevron = document.getElementById('dbChevron');
+            wrapper.classList.toggle('open');
+            chevron.classList.toggle('open');
+        }
+
+        function triggerAnalyze() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.classList.remove('btn-clicked');
+            void btn.offsetWidth; 
+            btn.classList.add('btn-clicked');
+            setTimeout(parseLogs, 100); 
+        }
+
+        // --- LOCAL STORAGE MAPPING LOGIC ---
+        let localMappings = {};
+
+        window.onload = function() {
+            // Load Theme
+            const savedTheme = localStorage.getItem('n0c_owl_theme') || 'default';
+            if(savedTheme !== 'default') {
+                document.body.classList.add(`theme-${savedTheme}`);
+                document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
+                
+                // Set the correct menu item as active based on loaded theme
+                const options = document.querySelectorAll('.theme-option');
+                if(savedTheme === 'industrial') options[1].classList.add('active');
+                if(savedTheme === 'vapor') options[2].classList.add('active');
+            }
+
+            try {
+                const saved = localStorage.getItem('bgp_ip_mappings');
+                if (saved) {
+                    document.getElementById('mappingInput').value = saved;
+                    buildMappingDictionary(saved);
+                }
+            } catch (e) { console.error("Local storage is disabled."); }
+        };
+
+        function buildMappingDictionary(rawText) {
+            localMappings = {};
+            const lines = rawText.split('\n');
+            const ipRegex = /\b(\d{1,3}(?:\.\d{1,3}){3})\b/;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+
+                const match = line.match(ipRegex);
+                if (match) {
+                    const ip = match[1];
+                    const parts = line.split(ip);
+                    let leftPart = parts[0] || '';
+                    const rightPart = parts[1] || '';
+
+                    let siteCode = null; let siteType = null;
+                    const siteMatch = leftPart.match(/^\[([A-Z]+)\s+(DC|DIA)\]/i);
+                    if (siteMatch) {
+                        siteCode = siteMatch[1].toUpperCase();
+                        siteType = siteMatch[2].toUpperCase();
+                        leftPart = leftPart.substring(siteMatch[0].length).trim();
+                        leftPart = leftPart.replace(/^-/, '').trim();
+                    }
+
+                    let leftClean = leftPart.replace(/[\[\]]/g, ' ').trim().replace(/-$/, '').trim(); 
+                    let leftTokens = leftClean.split(/\s+-\s+/).filter(t => t);
+                    
+                    let nickname = ''; let realHostname = '';
+                    if (leftTokens.length >= 2) {
+                        realHostname = leftTokens.pop(); 
+                        nickname = leftTokens.join(' - '); 
+                    } else if (leftTokens.length === 1) {
+                        realHostname = leftTokens[0]; 
+                    }
+
+                    const isp = rightPart.replace(/[\[\]]/g, '').replace(/^[-,\s]+|[-,\s]+$/g, '').trim();
+                    if (nickname || realHostname || isp || siteCode) {
+                        localMappings[ip] = { siteCode, siteType, nickname, realHostname, isp };
+                    }
+                }
+            });
+        }
+
+        function saveMappings() {
+            const rawText = document.getElementById('mappingInput').value;
+            try {
+                localStorage.setItem('bgp_ip_mappings', rawText);
+                buildMappingDictionary(rawText);
+                const alertBox = document.getElementById('mappingAlert');
+                alertBox.innerText = "> PROTOCOL: DB_MAPPING_COMMITTED.";
+                alertBox.style.display = "block";
+                setTimeout(() => alertBox.style.display = "none", 3000);
+            } catch (e) { alert("Error saving data."); }
+        }
+
+        function clearMappings() {
+            if(confirm("EXECUTE TOTAL FLUSH OF LOCAL DATABASE?")) {
+                localStorage.removeItem('bgp_ip_mappings');
+                document.getElementById('mappingInput').value = "";
+                localMappings = {};
+                const alertBox = document.getElementById('mappingAlert');
+                alertBox.innerText = "> PROTOCOL: DB_MAPPING_FLUSHED.";
+                alertBox.style.display = "block";
+                setTimeout(() => alertBox.style.display = "none", 3000);
+            }
+        }
+
+        // --- BGP PARSER LOGIC ---
+        function parseLogs() {
+            const rawText = document.getElementById('logInput').value;
+            const lines = rawText.split('\n');
+            const peers = {};
+            let isUTC = false; let logYear = new Date().getFullYear();
+            let currentHostname = "Unknown-Router"; 
+
+            lines.forEach(line => {
+                const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
+                if (hostMatch) currentHostname = hostMatch[1];
+                const clockMatch = line.match(/\d{2}:\d{2}:\d{2}(?:\.\d{3})?\s+([A-Z]{3,4})\s+[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d+\s+(\d{4})/);
+                if (clockMatch) {
+                    if (clockMatch[1] === 'UTC') isUTC = true;
+                    logYear = clockMatch[2];
+                }
+            });
+
+            const alertBox = document.getElementById('timezoneAlert');
+            if (isUTC) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = `> UTC CLOCK DETECTED. APPLYING PHT TEMPORAL OFFSET (+8h)...`;
+            } else { alertBox.style.display = 'none'; }
+
+            lines.forEach(line => {
+                line = line.trim();
+                const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
+                if (hostMatch) currentHostname = hostMatch[1];
+
+                const logMatch = line.match(/([A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2}(?:\.\d{3})?):?\s+%BGP-5-ADJCHANGE: neighbor (\d{1,3}(?:\.\d{1,3}){3}) (Down|Up)/);
+                if (logMatch) {
+                    const timeStr = logMatch[1]; const ip = logMatch[2]; const eventType = logMatch[3];
+                    const cleanTimeStr = timeStr.replace(/\s+/g, ' '); 
+                    
+                    let parseStr = `${cleanTimeStr} ${logYear}`;
+                    if (isUTC) parseStr += " UTC";
+                    const dateObj = new Date(parseStr);
+
+                    if (!peers[ip]) {
+                        peers[ip] = { ip, routerHostname: currentHostname, flapInstances: 0, rawDowns: 0, rawUps: 0, currentDownTime: null, currentDownStr: null, flaps: [] };
+                    } else { peers[ip].routerHostname = currentHostname; }
+
+                    if (eventType === 'Down') {
+                        peers[ip].rawDowns++;
+                        if (!peers[ip].currentDownTime) {
+                            peers[ip].flapInstances++; peers[ip].currentDownTime = dateObj; peers[ip].currentDownStr = timeStr;
+                        }
+                    } else if (eventType === 'Up') {
+                        peers[ip].rawUps++;
+                        if (peers[ip].currentDownTime) {
+                            const durationMs = dateObj.getTime() - peers[ip].currentDownTime.getTime();
+                            peers[ip].flaps.push({ downDate: peers[ip].currentDownTime, downStr: peers[ip].currentDownStr, upDate: dateObj, upStr: timeStr, duration: durationMs });
+                            peers[ip].currentDownTime = null; 
+                        }
+                    }
+                }
+            });
+
+            renderTable(peers, isUTC);
+        }
+
+        // --- UTILS ---
+        function formatDuration(ms) {
+            if (isNaN(ms) || ms < 0) return "Unknown";
+            if (ms < 1000) return `${ms}ms`;
+            let sec = ms / 1000;
+            if (sec < 60) return `${sec.toFixed(3)}s`;
+            let min = Math.floor(sec / 60);
+            let remSec = (sec % 60).toFixed(3);
+            if (min < 60) return `${min}m ${remSec}s`;
+            let hr = Math.floor(min / 60);
+            let remMin = min % 60;
+            return `${hr}h ${remMin}m ${remSec}s`;
+        }
+
+        function formatToPHT(dateObj) {
+            if (isNaN(dateObj)) return "Invalid Date";
+            const phtDate = new Date(dateObj.getTime() + (8 * 60 * 60 * 1000));
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const mon = months[phtDate.getUTCMonth()];
+            const day = String(phtDate.getUTCDate()).padStart(2, '0');
+            const hr = String(phtDate.getUTCHours()).padStart(2, '0');
+            const min = String(phtDate.getUTCMinutes()).padStart(2, '0');
+            const sec = String(phtDate.getUTCSeconds()).padStart(2, '0');
+            const ms = String(phtDate.getUTCMilliseconds()).padStart(3, '0');
+            return `${mon} ${day} ${hr}:${min}:${sec}.${ms} PHT`;
+        }
+
+        function getOrdinal(n) {
+            if (n % 100 >= 11 && n % 100 <= 13) return n + "th";
+            switch (n % 10) { case 1: return n + "st"; case 2: return n + "nd"; case 3: return n + "rd"; default: return n + "th"; }
+        }
+
+        // --- RENDER TABLE ---
+        function renderTable(peers, isUTC) {
+            const resultsArea = document.getElementById('resultsArea');
+            if (Object.keys(peers).length === 0) {
+                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px;">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">TARGET_NODES</th>
+                            <th style="width: 15%;">STATUS_CODE</th>
+                            <th style="width: 55%;">FAULT_LOG_AND_Temporal_DELTA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let rowIndex = 0;
+
+            for (const ip in peers) {
+                const peer = peers[ip];
+                const flapCount = peer.flapInstances;
+                const mapping = localMappings[peer.ip];
+                
+                let primaryNameHtml = peer.ip; 
+                let subDetails = ''; let siteBadge = ''; let glowClass = '';
+
+                if (mapping) {
+                    if (mapping.siteCode && mapping.siteType) {
+                        siteBadge = `<span class="site-badge">[${mapping.siteCode} ${mapping.siteType}]</span>`;
+                        if (mapping.siteType === 'DC') {
+                            if (['PH', 'TWN', 'MY'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
+                            else if (['IN'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
+                            else if (['US', 'MX', 'GR'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
+                            else if (['CO'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
+                        }
+                    }
+
+                    if (mapping.nickname || mapping.realHostname) {
+                        let nicknameHtml = mapping.nickname;
+                        if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
+
+                        if (mapping.nickname && mapping.realHostname) {
+                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
+                        } else if (mapping.nickname) {
+                            primaryNameHtml = `${siteBadge}${nicknameHtml}`;
+                        } else if (mapping.realHostname) {
+                            primaryNameHtml = `${siteBadge}${mapping.realHostname}`;
+                        }
+
+                        subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">IP: ${peer.ip}</span>`;
+                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
+                    } else {
+                        primaryNameHtml = `${siteBadge}${peer.ip}`;
+                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
+                    }
+                }
+
+                let statusDisplayHtml = '';
+                if (peer.currentDownTime) {
+                    statusDisplayHtml = `<span class="flap-critical">⚠️ HARD_DOWN</span>`;
+                    if (flapCount > 1) {
+                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: 11px; display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
+                    }
+                } else {
+                    let instanceFlapClass = '';
+                    if (flapCount === 1) instanceFlapClass = 'flap-1';
+                    else if (flapCount === 2) instanceFlapClass = 'flap-2';
+                    else if (flapCount >= 3) instanceFlapClass = 'flap-critical';
+
+                    const instanceText = flapCount === 1 ? 'FAULT' : 'FAULTS';
+                    statusDisplayHtml = `<span class="${instanceFlapClass}">${flapCount} ${instanceText}</span>`;
+                }
+
+                let timelineHtml = '<ul class="flap-list">';
+                peer.flaps.forEach((flap, idx) => {
+                    const displayTime = isUTC ? formatToPHT(flap.downDate) : flap.downStr;
+                    const displayUpTime = isUTC ? formatToPHT(flap.upDate) : flap.upStr;
+                    
+                    let intervalHtml = '';
+                    if (idx > 0) {
+                        const prevUpDate = peer.flaps[idx - 1].upDate;
+                        const intervalMs = flap.downDate.getTime() - prevUpDate.getTime();
+                        intervalHtml = `
+                            <div class="interval-badge">
+                                UPTIME_DELTA: <span style="color: var(--warning-color);">${formatDuration(intervalMs)}</span>
+                            </div><br>`;
+                    }
+
+                    timelineHtml += `
+                        <li>
+                            ${intervalHtml}
+                            <div class="instance-badge">INCIDENT_${getOrdinal(idx + 1)}</div><br>
+                            <span class="status-down">DN_EVENT:</span> ${displayTime} <br>
+                            <span class="status-up">UP_EVENT:</span> ${displayUpTime} <br>
+                            <span style="color:var(--text-muted);">OUTAGE_DURATION: <strong style="color:var(--text-main);">${formatDuration(flap.duration)}</strong></span>
+                        </li>`;
+                });
+
+                if (peer.currentDownTime) {
+                    const displayTime = isUTC ? formatToPHT(peer.currentDownTime) : peer.currentDownStr;
+                    
+                    let intervalHtml = '';
+                    if (peer.flaps.length > 0) {
+                        const prevUpDate = peer.flaps[peer.flaps.length - 1].upDate;
+                        const intervalMs = peer.currentDownTime.getTime() - prevUpDate.getTime();
+                        intervalHtml = `
+                            <div class="interval-badge">
+                                UPTIME_DELTA: <span style="color: var(--warning-color);">${formatDuration(intervalMs)}</span>
+                            </div><br>`;
+                    }
+
+                    timelineHtml += `
+                        <li>
+                            ${intervalHtml}
+                            <div class="instance-badge" style="background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color);">INCIDENT_${getOrdinal(peer.flaps.length + 1)} (ACTIVE)</div><br>
+                            <span class="status-down">DN_EVENT:</span> ${displayTime} <br>
+                            > <em>AWAITING UPSTREAM RECOVERY LOG...</em>
+                        </li>`;
+                }
+                if (peer.flaps.length === 0 && !peer.currentDownTime) {
+                    timelineHtml += `<li><em>> ERR: INCOMPLETE_DATASET. UP LOGS DETECTED WITHOUT PRECEDING DOWN LOGS. Duration cannot be calculated.</em></li>`;
+                }
+                timelineHtml += '</ul>';
+
+                html += `
+                    <tr class="animated-row" style="animation-delay: ${rowIndex * 0.1}s">
+                        <td>
+                            <span style="font-size: 15px; font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
+                            ${subDetails}
+                        </td>
+                        <td>
+                            ${statusDisplayHtml}<br>
+                            <span style="color:var(--text-muted); font-size:11px; display:inline-block; margin-top:4px;">
+                                (RAW_METRICS: ${peer.rawDowns} DN, ${peer.rawUps} UP)
+                            </span>
+                        </td>
+                        <td>${timelineHtml}</td>
+                    </tr>
+                `;
+                rowIndex++;
+            }
+
+            html += `</tbody></table>`;
+            resultsArea.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
