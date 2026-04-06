@@ -38,7 +38,7 @@
             
             --accent-primary: #f38200; /* Orange */
             --accent-secondary: #eeb052; /* Gold */
-            --razer-green: #f38200; /* Replaces Razer green with Orange for consistency */
+            --razer-green: #f38200; 
             
             --success-color: #eeb052; 
             --danger-color: #f38200;
@@ -286,8 +286,13 @@
             margin-bottom: 20px; 
             white-space: pre; 
             overflow-y: hidden; /* For Auto Expand */
+            resize: none; /* Prevents dragging/breaking the layout */
         }
-        #mappingInput { height: 100px; white-space: pre; }
+        #mappingInput { 
+            height: 100px; 
+            white-space: pre; 
+            resize: vertical; /* Kept vertical resize for the DB mapping if needed */
+        }
 
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 
@@ -569,7 +574,8 @@ PH-PHX-CER1501#sh clock
                             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
                             let opacity = 1 - (dist / CONNECT_DISTANCE);
                             
-                            ctx.strokeStyle = p1.color; 
+                            // Convert hex to rgba for stroke style based on p1.color
+                            ctx.strokeStyle = p1.color; // Using full hex, adjusting alpha is tricky in pure hex so we use globalAlpha
                             ctx.globalAlpha = opacity * 0.4;
                             ctx.lineWidth = 1;
                             ctx.stroke();
