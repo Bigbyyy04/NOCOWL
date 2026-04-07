@@ -19,11 +19,14 @@
             
             --accent-primary: #58a6ff; /* Pro Tech Blue */
             --accent-secondary: #00e5ff; /* Tech Cyan */
-            --logo-accent: #00e5ff; /* Cyan block for the Ø */
+            --logo-accent: #00FF00; /* Neon Razer Green for the Ø */
             
             --success-color: #3fb950; 
             --danger-color: #f85149;
             --warning-color: #d29922;
+
+            /* Dynamic Text Scale Variable */
+            --content-font-size: 13px;
         }
 
         /* THEME: Industrial Flare (Taupe/Orange) */
@@ -111,8 +114,7 @@
             position: relative;
             z-index: 1; 
             background: var(--panel-bg); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            /* Removing backdrop filter from container to avoid conflicting with sticky header blur */
             padding: 30px 40px;
             border: 1px solid var(--panel-border);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.9);
@@ -120,15 +122,27 @@
             transition: background-color 0.5s ease, border-color 0.5s ease;
         }
 
-        /* --- Terminal Header --- */
+        /* --- Sticky Terminal Header --- */
         .app-header {
             display: flex;
             align-items: center;
             border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 15px;
+            
+            /* Sticky Logic */
+            position: sticky;
+            top: -30px; /* Aligns with container padding */
+            z-index: 100;
+            background: var(--panel-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            
+            /* Counteract container padding for edge-to-edge stickiness */
+            margin-top: -30px;
+            margin-left: -40px;
+            margin-right: -40px;
             margin-bottom: 25px;
-            margin-top: 0;
-            position: relative;
+            padding: 30px 40px 15px 40px; 
+            box-shadow: 0 10px 15px -10px rgba(0,0,0,0.5);
         }
 
         .gear-btn-box {
@@ -145,6 +159,7 @@
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         .gear-btn-box:hover {
             border-color: var(--accent-primary);
@@ -186,13 +201,13 @@
         #settingsMenu {
             display: none;
             position: absolute;
-            top: 50px;
-            left: 0;
+            top: 70px;
+            left: 40px;
             background-color: var(--panel-bg);
             border: 1px solid var(--accent-primary);
             padding: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.9);
-            z-index: 100;
+            z-index: 101;
             min-width: 250px;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
@@ -205,7 +220,7 @@
             border: 1px solid transparent;
             transition: all 0.2s;
             color: var(--text-muted);
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
         }
         .theme-option:hover {
@@ -222,6 +237,41 @@
             width: 12px; height: 12px;
             margin-right: 10px;
             display: inline-block;
+        }
+
+        /* Text Slider Styling */
+        .slider-container {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--panel-border);
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            background: var(--accent-primary);
+            cursor: pointer;
+            border-radius: 0;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: var(--panel-border);
         }
 
         /* --- DB Card --- */
@@ -243,6 +293,7 @@
             align-items: center;
             background-color: rgba(255,255,255,0.02);
             text-transform: uppercase;
+            font-size: var(--content-font-size);
         }
         .db-header:hover { background-color: rgba(255,255,255,0.05); }
         .db-chevron { transition: transform 0.3s ease; font-size: 12px; }
@@ -252,13 +303,13 @@
         .db-content { overflow: hidden; padding: 0 15px; }
         .mapping-controls { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
 
-        /* --- Inputs --- */
+        /* --- Dynamic Sizing Inputs & Text --- */
         .instructions {
             background-color: rgba(255,255,255,0.02);
             padding: 12px 15px;
             border-left: 3px solid var(--accent-primary);
             margin-bottom: 20px;
-            font-size: 13px;
+            font-size: var(--content-font-size);
             line-height: 1.5;
             color: var(--text-muted);
             transition: border-color 0.5s ease;
@@ -271,7 +322,7 @@
             border: 1px solid var(--panel-border);
             padding: 12px;
             font-family: inherit;
-            font-size: 13px;
+            font-size: var(--content-font-size);
             box-sizing: border-box;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -285,13 +336,14 @@
             min-height: 180px; 
             margin-bottom: 20px; 
             white-space: pre; 
-            overflow-y: hidden; /* For Auto Expand */
+            overflow-y: hidden; 
             resize: none; 
         }
         #mappingInput { height: 100px; white-space: pre; }
 
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 
+        /* Static Buttons (Do NOT scale with text slider) */
         button {
             font-family: inherit; border: none; cursor: pointer;
             text-transform: uppercase; font-weight: bold; transition: all 0.2s;
@@ -330,22 +382,23 @@
         }
 
         .alert {
-            padding: 10px 15px; margin-top: 20px; font-size: 13px; font-weight: bold;
+            padding: 10px 15px; margin-top: 20px; font-size: var(--content-font-size); font-weight: bold;
             display: none; border-left: 3px solid; background-color: rgba(0,0,0,0.5); text-transform: uppercase;
         }
         .alert-info { border-color: var(--accent-primary); color: var(--accent-primary); }
         .alert-success { border-color: var(--success-color); color: var(--success-color); display: none; margin-bottom: 15px;}
 
-        /* --- Data Table --- */
+        /* --- Dynamic Sizing Data Table --- */
         table { width: 100%; border-collapse: collapse; margin-top: 25px; background-color: transparent; }
         th { 
             background-color: rgba(0, 0, 0, 0.3); font-weight: 600; color: var(--text-muted); 
-            font-size: 12px; text-transform: uppercase; padding: 12px 15px; text-align: left;
+            font-size: calc(var(--content-font-size) - 1px); text-transform: uppercase; padding: 12px 15px; text-align: left;
             border-bottom: 2px solid var(--panel-border);
         }
         td {
             padding: 15px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);
             vertical-align: top; background-color: rgba(0, 0, 0, 0.1);
+            font-size: var(--content-font-size);
         }
         tr { border-left: 2px solid transparent; transition: all 0.2s ease; }
         tr:hover { border-left: 2px solid var(--accent-primary); background-color: rgba(255,255,255,0.02); }
@@ -355,10 +408,10 @@
 
         .status-down { color: var(--danger-color); font-weight: bold; }
         .status-up { color: var(--success-color); font-weight: bold; }
-        .flap-1 { color: var(--success-color); font-weight: bold; font-size: 14px; }
-        .flap-2 { color: var(--warning-color); font-weight: bold; font-size: 14px; }
-        .flap-3 { color: var(--danger-color); font-weight: bold; font-size: 14px; }
-        .flap-critical { font-weight: bold; font-size: 14px; color: var(--danger-color); animation: cyber-pulse 1s infinite alternate; }
+        .flap-1 { color: var(--success-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
+        .flap-2 { color: var(--warning-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
+        .flap-3 { color: var(--danger-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
+        .flap-critical { font-weight: bold; font-size: calc(var(--content-font-size) + 1px); color: var(--danger-color); animation: cyber-pulse 1s infinite alternate; }
         @keyframes cyber-pulse {
             from { text-shadow: 0 0 5px rgba(255, 0, 0, 0.2); }
             to { text-shadow: 0 0 15px var(--danger-color); }
@@ -367,20 +420,20 @@
         .glow-accent1 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-primary); }
         .glow-accent2 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-secondary); }
 
-        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: 12px; color: var(--text-muted); }
+        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted); }
         ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
         .instance-badge {
             color: var(--bg-color); background-color: var(--text-muted); padding: 2px 6px; 
-            font-size: 11px; margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase;
+            font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase;
         }
         .interval-badge {
-            color: var(--text-muted); font-size: 11px; margin-bottom: 6px; padding-left: 8px; 
+            color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; padding-left: 8px; 
             border-left: 2px solid var(--accent-secondary); display: inline-block;
         }
         .site-badge {
-            font-size: 11px; padding: 2px 4px; background: rgba(0,0,0,0.5); 
+            font-size: calc(var(--content-font-size) - 2px); padding: 2px 4px; background: rgba(0,0,0,0.5); 
             border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle;
         }
     </style>
@@ -392,7 +445,7 @@
     <div class="container">
         
         <header class="app-header">
-            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="Theme Settings">⚙️</div>
+            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="System Settings">⚙️</div>
             
             <div id="settingsMenu">
                 <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">// UI SCHEMATICS</div>
@@ -404,6 +457,14 @@
                 </div>
                 <div class="theme-option" onclick="setTheme('vapor', this)">
                     <span class="theme-swatch" style="background:#fd65ff;"></span> VAPOR NETWORKS
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Text Scale</span>
+                        <span id="textSizeReadout" style="color: var(--accent-primary);">13px</span>
+                    </div>
+                    <input type="range" id="textSizeSlider" min="10" max="18" value="13" oninput="updateTextSize(this.value)">
                 </div>
             </div>
 
@@ -423,7 +484,7 @@
             <div class="db-content-wrapper" id="dbContentWrapper">
                 <div class="db-content">
                     <div class="mapping-controls">
-                        <p style="margin:0; font-size:12px; color:var(--text-muted);">
+                        <p style="margin:0; font-size:calc(var(--content-font-size) - 1px); color:var(--text-muted);">
                             > Mapping Definition Interface.<br>
                             > Format: <code>[REGION DC/DIA] - [NICKNAME] - [router_hostname] - [IP] - [ISP/CARRIER]</code>
                         </p>
@@ -459,6 +520,20 @@ PH-PHX-CER1501#sh clock
     </div>
 
     <script>
+        // --- TEXT SCALING LOGIC ---
+        function updateTextSize(size) {
+            document.documentElement.style.setProperty('--content-font-size', size + 'px');
+            document.getElementById('textSizeReadout').innerText = size + 'px';
+            localStorage.setItem('n0c_owl_text_size', size);
+            
+            // If the auto-expand textarea has content, force it to resize to new text height
+            const logInputBox = document.getElementById('logInput');
+            if(logInputBox.value.length > 0) {
+                logInputBox.style.height = 'auto';
+                logInputBox.style.height = (logInputBox.scrollHeight) + 'px';
+            }
+        }
+
         // --- THEME LOGIC ---
         function toggleThemeMenu() {
             const menu = document.getElementById('settingsMenu');
@@ -466,22 +541,17 @@ PH-PHX-CER1501#sh clock
         }
 
         function setTheme(themeName, element) {
-            // Update Body Class
             document.body.className = '';
             if (themeName !== 'default') {
                 document.body.classList.add(`theme-${themeName}`);
             }
             
-            // Save to Local Storage
             localStorage.setItem('n0c_owl_theme', themeName);
 
-            // Update UI Selection
             document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
             if(element) element.classList.add('active');
 
-            // Force Canvas to pull new colors
             updateCanvasColors();
-            toggleThemeMenu(); // close menu
         }
 
         // --- AUTO-EXPANDING TEXTAREA LOGIC ---
@@ -493,16 +563,14 @@ PH-PHX-CER1501#sh clock
 
         // --- BACKGROUND CANVAS ANIMATION ---
         let particles = [];
-        let canvasColors = ['#58a6ff', '#00e5ff']; // initial default for NOC STANDARD
+        let canvasColors = ['#58a6ff', '#00e5ff']; 
 
         function updateCanvasColors() {
-            // Pull the current CSS variables for the active theme
             const style = getComputedStyle(document.body);
             const pColor = style.getPropertyValue('--accent-primary').trim() || '#58a6ff';
             const sColor = style.getPropertyValue('--accent-secondary').trim() || '#00e5ff';
             canvasColors = [pColor, sColor];
             
-            // Update existing particles
             particles.forEach(p => {
                 p.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
             });
@@ -534,7 +602,6 @@ PH-PHX-CER1501#sh clock
                     this.y = Math.random() * canvas.height;
                     this.vx = (Math.random() - 0.5) * 0.6;
                     this.vy = (Math.random() - 0.5) * 0.6;
-                    // REFINED PARTICLE SIZE: Much smaller dots for a subtle look
                     this.radius = Math.random() * 0.8 + 0.2; 
                     this.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
                 }
@@ -554,7 +621,7 @@ PH-PHX-CER1501#sh clock
             }
 
             for (let i = 0; i < PARTICLE_COUNT; i++) { particles.push(new Particle()); }
-            updateCanvasColors(); // Initialize colors based on active theme
+            updateCanvasColors(); 
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -573,7 +640,7 @@ PH-PHX-CER1501#sh clock
                             
                             ctx.strokeStyle = p1.color; 
                             ctx.globalAlpha = opacity * 0.4;
-                            ctx.lineWidth = 0.8; // Thinner lines
+                            ctx.lineWidth = 0.8; 
                             ctx.stroke();
                             ctx.globalAlpha = 1.0; 
                         }
@@ -615,9 +682,7 @@ PH-PHX-CER1501#sh clock
             setTimeout(parseLogs, 100); 
         }
 
-        // --- LOCAL STORAGE MAPPING LOGIC ---
-        let localMappings = {};
-
+        // --- INITIALIZATION ---
         window.onload = function() {
             // Load Theme
             const savedTheme = localStorage.getItem('n0c_owl_theme') || 'default';
@@ -625,10 +690,16 @@ PH-PHX-CER1501#sh clock
                 document.body.classList.add(`theme-${savedTheme}`);
                 document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
                 
-                // Set the correct menu item as active based on loaded theme
                 const options = document.querySelectorAll('.theme-option');
                 if(savedTheme === 'industrial') options[1].classList.add('active');
                 if(savedTheme === 'vapor') options[2].classList.add('active');
+            }
+
+            // Load Text Size
+            const savedSize = localStorage.getItem('n0c_owl_text_size');
+            if (savedSize) {
+                document.getElementById('textSizeSlider').value = savedSize;
+                updateTextSize(savedSize);
             }
 
             try {
@@ -732,7 +803,6 @@ PH-PHX-CER1501#sh clock
                 alertBox.innerText = `> UTC CLOCK DETECTED. APPLYING PHT TEMPORAL OFFSET (+8h)...`;
             } else { alertBox.style.display = 'none'; }
 
-            // UPDATED REGEX: Handles inline year, timezone, and arbitrary string insertions (like VRF)
             lines.forEach(line => {
                 line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
@@ -743,7 +813,6 @@ PH-PHX-CER1501#sh clock
                 if (logMatch) {
                     const timeStr = logMatch[1]; 
                     const ip = logMatch[2]; 
-                    // Normalize event type capitalization since we used /i flag
                     const eventType = logMatch[3].charAt(0).toUpperCase() + logMatch[3].slice(1).toLowerCase(); 
                     
                     const cleanTimeStr = timeStr.replace(/\s+/g, ' '); 
@@ -813,7 +882,7 @@ PH-PHX-CER1501#sh clock
         function renderTable(peers, isUTC) {
             const resultsArea = document.getElementById('resultsArea');
             if (Object.keys(peers).length === 0) {
-                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px;">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
+                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px; font-size: var(--content-font-size);">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
                 return;
             }
 
@@ -855,18 +924,18 @@ PH-PHX-CER1501#sh clock
                         if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
 
                         if (mapping.nickname && mapping.realHostname) {
-                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
+                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: var(--content-font-size); color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
                         } else if (mapping.nickname) {
                             primaryNameHtml = `${siteBadge}${nicknameHtml}`;
                         } else if (mapping.realHostname) {
                             primaryNameHtml = `${siteBadge}${mapping.realHostname}`;
                         }
 
-                        subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">IP: ${peer.ip}</span>`;
-                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
+                        subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">IP: ${peer.ip}</span>`;
+                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
                     } else {
                         primaryNameHtml = `${siteBadge}${peer.ip}`;
-                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
+                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
                     }
                 }
 
@@ -874,7 +943,7 @@ PH-PHX-CER1501#sh clock
                 if (peer.currentDownTime) {
                     statusDisplayHtml = `<span class="flap-critical">⚠️ HARD_DOWN</span>`;
                     if (flapCount > 1) {
-                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: 11px; display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
+                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
                     }
                 } else {
                     let instanceFlapClass = '';
@@ -940,12 +1009,12 @@ PH-PHX-CER1501#sh clock
                 html += `
                     <tr class="animated-row" style="animation-delay: ${rowIndex * 0.1}s">
                         <td>
-                            <span style="font-size: 15px; font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
+                            <span style="font-size: calc(var(--content-font-size) + 2px); font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
                             ${subDetails}
                         </td>
                         <td>
                             ${statusDisplayHtml}<br>
-                            <span style="color:var(--text-muted); font-size:11px; display:inline-block; margin-top:4px;">
+                            <span style="color:var(--text-muted); font-size:calc(var(--content-font-size) - 2px); display:inline-block; margin-top:4px;">
                                 (RAW_METRICS: ${peer.rawDowns} DN, ${peer.rawUps} UP)
                             </span>
                         </td>
