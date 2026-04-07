@@ -52,18 +52,23 @@
             --logo-accent: #7cf14f; 
         }
 
-        /* --- Severity Glow Animations --- */
-        @keyframes severity-pulse-low {
-            from { text-shadow: 0 0 2px currentColor; }
-            to { text-shadow: 0 0 8px currentColor; }
+        /* --- Custom Fault Count Animations --- */
+        @keyframes pulse-fault-1 {
+            from { text-shadow: 0 0 4px rgba(143, 240, 70, 0.3); }
+            to { text-shadow: 0 0 10px rgba(143, 240, 70, 0.8), 0 0 15px rgba(143, 240, 70, 0.5); }
         }
-        @keyframes severity-pulse-med {
-            from { text-shadow: 0 0 6px currentColor; }
-            to { text-shadow: 0 0 15px currentColor; }
+        @keyframes pulse-fault-2 {
+            from { text-shadow: 0 0 5px rgba(240, 197, 70, 0.4); }
+            to { text-shadow: 0 0 12px rgba(240, 197, 70, 0.9), 0 0 20px rgba(240, 197, 70, 0.6); }
         }
-        @keyframes severity-pulse-high {
-            from { text-shadow: 0 0 10px currentColor; }
-            to { text-shadow: 0 0 20px currentColor, 0 0 35px currentColor; }
+        @keyframes pulse-fault-3 {
+            from { text-shadow: 0 0 8px rgba(255, 74, 38, 0.6); }
+            to { text-shadow: 0 0 18px rgba(255, 74, 38, 1), 0 0 30px rgba(255, 74, 38, 0.8); }
+        }
+        @keyframes pulse-hard-down {
+            0% { text-shadow: 0 0 5px rgba(255, 0, 208, 0.6); transform: scale(1); }
+            50% { text-shadow: 0 0 25px rgba(255, 0, 208, 1), 0 0 40px rgba(255, 0, 208, 0.9); transform: scale(1.02); }
+            100% { text-shadow: 0 0 5px rgba(255, 0, 208, 0.6); transform: scale(1); }
         }
 
         /* --- Futuristic Scrollbar --- */
@@ -218,6 +223,12 @@
         .animated-row { opacity: 0; transform: translateX(-15px); animation: slideRightFade 0.4s forwards; }
         @keyframes slideRightFade { to { opacity: 1; transform: translateX(0); } }
 
+        .status-down { color: var(--danger-color); font-weight: bold; }
+        .status-up { color: var(--success-color); font-weight: bold; }
+
+        .glow-accent1 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-primary); }
+        .glow-accent2 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-secondary); }
+
         ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted); }
         ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -309,7 +320,7 @@ PH-PHX-CER1501#sh clock
     </div>
 
     <script>
-        // --- SEVERITY COLOR SPECTRUM (Sampled from Dark Blue to Bright Pink) ---
+        // --- SEVERITY COLOR SPECTRUM FOR TIMELINE INSTANCES (Dark Blue to Hot Pink) ---
         const severitySpectrum = [
             '#327FE3', // Instance 1: Blue
             '#4573DD', // Instance 2: Blue-Indigo
@@ -590,7 +601,6 @@ PH-PHX-CER1501#sh clock
                 alertBox.innerText = `> UTC CLOCK DETECTED. APPLYING PHT TEMPORAL OFFSET (+8h)...`;
             } else { alertBox.style.display = 'none'; }
 
-            // UPDATED REGEX: Handles inline year, timezone, and arbitrary string insertions (like VRF)
             lines.forEach(line => {
                 line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
@@ -698,9 +708,18 @@ PH-PHX-CER1501#sh clock
                 if (mapping) {
                     if (mapping.siteCode && mapping.siteType) {
                         siteBadge = `<span class="site-badge">[${mapping.siteCode} ${mapping.siteType}]</span>`;
+                        if (mapping.siteType === 'DC') {
+                            if (['PH', 'TWN', 'MY'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
+                            else if (['IN'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
+                            else if (['US', 'MX', 'GR'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
+                            else if (['CO'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
+                        }
                     }
+
                     if (mapping.nickname || mapping.realHostname) {
                         let nicknameHtml = mapping.nickname;
+                        if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
+
                         if (mapping.nickname && mapping.realHostname) {
                             primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: var(--content-font-size); color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
                         } else if (mapping.nickname) {
@@ -717,28 +736,33 @@ PH-PHX-CER1501#sh clock
                     }
                 }
 
-                // --- Overall Flap Count logic with Dynamic Color and Pulse ---
-                const totalFlapColor = getSeverityColor(flapCount - 1);
-                let pulseAnimation = '';
-                if (flapCount === 2) pulseAnimation = 'severity-pulse-low';
-                else if (flapCount === 3) pulseAnimation = 'severity-pulse-med';
-                else if (flapCount >= 4) pulseAnimation = 'severity-pulse-high';
-
-                let countPulseStyle = `color: ${totalFlapColor}; font-weight: bold; font-size: calc(var(--content-font-size) + 1px);`;
-                if (pulseAnimation) {
-                    countPulseStyle += ` animation: ${pulseAnimation} 1s infinite alternate;`;
-                }
-
+                // --- Overall Flap Count text with specific Colors and Glow ---
+                let summaryStyle = '';
                 let statusDisplayHtml = '';
+                
                 if (peer.currentDownTime) {
-                    // Apply current active down animation style
-                    statusDisplayHtml = `<span style="${countPulseStyle}">⚠️ HARD_DOWN</span>`;
+                    // HARD DOWN
+                    summaryStyle = 'color: #ff00d0; font-weight: bold; font-size: calc(var(--content-font-size) + 2px); animation: pulse-hard-down 0.5s infinite; display: inline-block;';
+                    statusDisplayHtml = `<span style="${summaryStyle}">⚠️ HARD_DOWN</span>`;
                     if (flapCount > 1) {
                         statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
                     }
                 } else {
                     const instanceText = flapCount === 1 ? 'FAULT' : 'FAULTS';
-                    statusDisplayHtml = `<span style="${countPulseStyle}">${flapCount} ${instanceText}</span>`;
+                    let color = '';
+                    let anim = '';
+                    if (flapCount === 1) {
+                        color = '#8ff046';
+                        anim = 'pulse-fault-1 1.5s infinite alternate';
+                    } else if (flapCount === 2) {
+                        color = '#f0c546';
+                        anim = 'pulse-fault-2 1.2s infinite alternate';
+                    } else {
+                        color = '#ff4a26';
+                        anim = 'pulse-fault-3 0.8s infinite alternate';
+                    }
+                    summaryStyle = `color: ${color}; font-weight: bold; font-size: calc(var(--content-font-size) + 1px); animation: ${anim}; display: inline-block;`;
+                    statusDisplayHtml = `<span style="${summaryStyle}">${flapCount} ${instanceText}</span>`;
                 }
 
                 let timelineHtml = '<ul class="flap-list">';
