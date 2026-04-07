@@ -8,25 +8,22 @@
     <style>
         /* --- GLOBAL THEME VARIABLES --- */
         :root {
-            /* DEFAULT: NOC Standard (Professional Tech) */
-            --bg-color: #0d1117; 
-            --panel-bg: rgba(22, 27, 34, 0.85); 
-            --panel-border: #30363d;
-            --grid-color: rgba(255, 255, 255, 0.02);
+            /* DEFAULT: Cyber Original */
+            --bg-color: #050507; 
+            --panel-bg: rgba(10, 12, 16, 0.85); 
+            --panel-border: #1f2229;
+            --grid-color: rgba(255, 255, 255, 0.03);
             
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
+            --text-main: #e0e0e0;
+            --text-muted: #6b7280;
             
-            --accent-primary: #58a6ff; /* Pro Tech Blue */
-            --accent-secondary: #00e5ff; /* Tech Cyan */
-            --logo-accent: #00FF00; /* Neon Razer Green for the Ø */
+            --accent-primary: #00f0ff; /* Cyan */
+            --accent-secondary: #ff0055; /* Pink */
+            --razer-green: #00FF00;
             
-            --success-color: #3fb950; 
-            --danger-color: #f85149;
-            --warning-color: #d29922;
-
-            /* Dynamic Text Scale Variable */
-            --content-font-size: 13px;
+            --success-color: #39ff14; 
+            --danger-color: var(--accent-secondary);
+            --warning-color: #fcee0a;
         }
 
         /* THEME: Industrial Flare (Taupe/Orange) */
@@ -41,7 +38,7 @@
             
             --accent-primary: #f38200; /* Orange */
             --accent-secondary: #eeb052; /* Gold */
-            --logo-accent: #f38200; 
+            --razer-green: #f38200; 
             
             --success-color: #eeb052; 
             --danger-color: #f38200;
@@ -60,11 +57,34 @@
             
             --accent-primary: #fd65ff; /* Fuchsia */
             --accent-secondary: #7cf14f; /* Neon Green */
-            --logo-accent: #7cf14f; 
+            --razer-green: #7cf14f; 
             
             --success-color: #b0dea4; /* Light Sage Green */
             --danger-color: #fd65ff; /* Fuchsia */
             --warning-color: #097381; /* Teal */
+        }
+
+        /* --- Severity Glow Animations --- */
+        /* Pulsing keyframe animations for different fault counts */
+        @keyframes severity-pulse-base {
+            from { text-shadow: 0 0 5px currentColor; }
+            to { text-shadow: 0 0 8px currentColor; }
+        }
+        @keyframes severity-pulse-med {
+            from { text-shadow: 0 0 8px currentColor; }
+            to { text-shadow: 0 0 12px currentColor; }
+        }
+        @keyframes severity-pulse-high {
+            from { text-shadow: 0 0 12px currentColor; }
+            to { text-shadow: 0 0 16px currentColor; }
+        }
+
+        /* Base class for a high-count pulsing effect (kept for compatibility) */
+        .flap-critical-pulse {
+            font-weight: bold;
+            font-size: 14px;
+            color: currentColor;
+            animation: severity-pulse-high 1s infinite alternate;
         }
 
         /* --- Futuristic Scrollbar --- */
@@ -114,7 +134,8 @@
             position: relative;
             z-index: 1; 
             background: var(--panel-bg); 
-            /* Removing backdrop filter from container to avoid conflicting with sticky header blur */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 30px 40px;
             border: 1px solid var(--panel-border);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.9);
@@ -122,27 +143,15 @@
             transition: background-color 0.5s ease, border-color 0.5s ease;
         }
 
-        /* --- Sticky Terminal Header --- */
+        /* --- Terminal Header --- */
         .app-header {
             display: flex;
             align-items: center;
             border-bottom: 1px solid var(--panel-border);
-            
-            /* Sticky Logic */
-            position: sticky;
-            top: -30px; /* Aligns with container padding */
-            z-index: 100;
-            background: var(--panel-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            
-            /* Counteract container padding for edge-to-edge stickiness */
-            margin-top: -30px;
-            margin-left: -40px;
-            margin-right: -40px;
+            padding-bottom: 15px;
             margin-bottom: 25px;
-            padding: 30px 40px 15px 40px; 
-            box-shadow: 0 10px 15px -10px rgba(0,0,0,0.5);
+            margin-top: 0;
+            position: relative;
         }
 
         .gear-btn-box {
@@ -159,7 +168,6 @@
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
             cursor: pointer;
             transition: all 0.2s;
-            position: relative;
         }
         .gear-btn-box:hover {
             border-color: var(--accent-primary);
@@ -178,12 +186,12 @@
         .brand-text { color: var(--text-main); letter-spacing: 2px; }
 
         .brand-highlight {
-            background-color: var(--logo-accent);
+            background-color: var(--razer-green);
             color: var(--bg-color); 
             padding: 0 6px;
             margin: -2px 6px; 
             letter-spacing: 0;
-            box-shadow: 0 0 12px var(--logo-accent);
+            box-shadow: 0 0 12px var(--razer-green);
             transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
@@ -201,13 +209,13 @@
         #settingsMenu {
             display: none;
             position: absolute;
-            top: 70px;
-            left: 40px;
+            top: 50px;
+            left: 0;
             background-color: var(--panel-bg);
             border: 1px solid var(--accent-primary);
             padding: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.9);
-            z-index: 101;
+            z-index: 100;
             min-width: 250px;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
@@ -220,7 +228,7 @@
             border: 1px solid transparent;
             transition: all 0.2s;
             color: var(--text-muted);
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
         }
         .theme-option:hover {
@@ -237,41 +245,6 @@
             width: 12px; height: 12px;
             margin-right: 10px;
             display: inline-block;
-        }
-
-        /* Text Slider Styling */
-        .slider-container {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--panel-border);
-        }
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 8px;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border-radius: 0;
-            margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: var(--panel-border);
         }
 
         /* --- DB Card --- */
@@ -293,7 +266,6 @@
             align-items: center;
             background-color: rgba(255,255,255,0.02);
             text-transform: uppercase;
-            font-size: var(--content-font-size);
         }
         .db-header:hover { background-color: rgba(255,255,255,0.05); }
         .db-chevron { transition: transform 0.3s ease; font-size: 12px; }
@@ -303,13 +275,13 @@
         .db-content { overflow: hidden; padding: 0 15px; }
         .mapping-controls { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
 
-        /* --- Dynamic Sizing Inputs & Text --- */
+        /* --- Inputs --- */
         .instructions {
             background-color: rgba(255,255,255,0.02);
             padding: 12px 15px;
             border-left: 3px solid var(--accent-primary);
             margin-bottom: 20px;
-            font-size: var(--content-font-size);
+            font-size: 13px;
             line-height: 1.5;
             color: var(--text-muted);
             transition: border-color 0.5s ease;
@@ -322,7 +294,7 @@
             border: 1px solid var(--panel-border);
             padding: 12px;
             font-family: inherit;
-            font-size: var(--content-font-size);
+            font-size: 13px;
             box-sizing: border-box;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -336,14 +308,12 @@
             min-height: 180px; 
             margin-bottom: 20px; 
             white-space: pre; 
-            overflow-y: hidden; 
-            resize: none; 
+            overflow-y: hidden; /* For Auto Expand */
         }
         #mappingInput { height: 100px; white-space: pre; }
 
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 
-        /* Static Buttons (Do NOT scale with text slider) */
         button {
             font-family: inherit; border: none; cursor: pointer;
             text-transform: uppercase; font-weight: bold; transition: all 0.2s;
@@ -382,23 +352,22 @@
         }
 
         .alert {
-            padding: 10px 15px; margin-top: 20px; font-size: var(--content-font-size); font-weight: bold;
+            padding: 10px 15px; margin-top: 20px; font-size: 13px; font-weight: bold;
             display: none; border-left: 3px solid; background-color: rgba(0,0,0,0.5); text-transform: uppercase;
         }
         .alert-info { border-color: var(--accent-primary); color: var(--accent-primary); }
         .alert-success { border-color: var(--success-color); color: var(--success-color); display: none; margin-bottom: 15px;}
 
-        /* --- Dynamic Sizing Data Table --- */
+        /* --- Data Table --- */
         table { width: 100%; border-collapse: collapse; margin-top: 25px; background-color: transparent; }
         th { 
             background-color: rgba(0, 0, 0, 0.3); font-weight: 600; color: var(--text-muted); 
-            font-size: calc(var(--content-font-size) - 1px); text-transform: uppercase; padding: 12px 15px; text-align: left;
+            font-size: 12px; text-transform: uppercase; padding: 12px 15px; text-align: left;
             border-bottom: 2px solid var(--panel-border);
         }
         td {
             padding: 15px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);
             vertical-align: top; background-color: rgba(0, 0, 0, 0.1);
-            font-size: var(--content-font-size);
         }
         tr { border-left: 2px solid transparent; transition: all 0.2s ease; }
         tr:hover { border-left: 2px solid var(--accent-primary); background-color: rgba(255,255,255,0.02); }
@@ -408,32 +377,26 @@
 
         .status-down { color: var(--danger-color); font-weight: bold; }
         .status-up { color: var(--success-color); font-weight: bold; }
-        .flap-1 { color: var(--success-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
-        .flap-2 { color: var(--warning-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
-        .flap-3 { color: var(--danger-color); font-weight: bold; font-size: calc(var(--content-font-size) + 1px); }
-        .flap-critical { font-weight: bold; font-size: calc(var(--content-font-size) + 1px); color: var(--danger-color); animation: cyber-pulse 1s infinite alternate; }
-        @keyframes cyber-pulse {
-            from { text-shadow: 0 0 5px rgba(255, 0, 0, 0.2); }
-            to { text-shadow: 0 0 15px var(--danger-color); }
-        }
+        /* Kept for standard pulse logic, but now dynamic is added in JS */
+        .flap-critical { font-weight: bold; font-size: 14px; color: var(--danger-color); animation: severity-pulse-med 1s infinite alternate; }
 
         .glow-accent1 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-primary); }
         .glow-accent2 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-secondary); }
 
-        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted); }
+        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: 12px; color: var(--text-muted); }
         ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
         .instance-badge {
             color: var(--bg-color); background-color: var(--text-muted); padding: 2px 6px; 
-            font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase;
+            font-size: 11px; margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase;
         }
         .interval-badge {
-            color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; padding-left: 8px; 
+            color: var(--text-muted); font-size: 11px; margin-bottom: 6px; padding-left: 8px; 
             border-left: 2px solid var(--accent-secondary); display: inline-block;
         }
         .site-badge {
-            font-size: calc(var(--content-font-size) - 2px); padding: 2px 4px; background: rgba(0,0,0,0.5); 
+            font-size: 11px; padding: 2px 4px; background: rgba(0,0,0,0.5); 
             border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle;
         }
     </style>
@@ -445,26 +408,18 @@
     <div class="container">
         
         <header class="app-header">
-            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="System Settings">⚙️</div>
+            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="Theme Settings">⚙️</div>
             
             <div id="settingsMenu">
                 <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">// UI SCHEMATICS</div>
                 <div class="theme-option active" onclick="setTheme('default', this)">
-                    <span class="theme-swatch" style="background:#58a6ff;"></span> NOC STANDARD
+                    <span class="theme-swatch" style="background:#00f0ff;"></span> CYBER ORIGINAL
                 </div>
                 <div class="theme-option" onclick="setTheme('industrial', this)">
                     <span class="theme-swatch" style="background:#f38200;"></span> INDUSTRIAL FLARE
                 </div>
                 <div class="theme-option" onclick="setTheme('vapor', this)">
                     <span class="theme-swatch" style="background:#fd65ff;"></span> VAPOR NETWORKS
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-label">
-                        <span>Text Scale</span>
-                        <span id="textSizeReadout" style="color: var(--accent-primary);">13px</span>
-                    </div>
-                    <input type="range" id="textSizeSlider" min="10" max="18" value="13" oninput="updateTextSize(this.value)">
                 </div>
             </div>
 
@@ -484,7 +439,7 @@
             <div class="db-content-wrapper" id="dbContentWrapper">
                 <div class="db-content">
                     <div class="mapping-controls">
-                        <p style="margin:0; font-size:calc(var(--content-font-size) - 1px); color:var(--text-muted);">
+                        <p style="margin:0; font-size:12px; color:var(--text-muted);">
                             > Mapping Definition Interface.<br>
                             > Format: <code>[REGION DC/DIA] - [NICKNAME] - [router_hostname] - [IP] - [ISP/CARRIER]</code>
                         </p>
@@ -520,18 +475,23 @@ PH-PHX-CER1501#sh clock
     </div>
 
     <script>
-        // --- TEXT SCALING LOGIC ---
-        function updateTextSize(size) {
-            document.documentElement.style.setProperty('--content-font-size', size + 'px');
-            document.getElementById('textSizeReadout').innerText = size + 'px';
-            localStorage.setItem('n0c_owl_text_size', size);
-            
-            // If the auto-expand textarea has content, force it to resize to new text height
-            const logInputBox = document.getElementById('logInput');
-            if(logInputBox.value.length > 0) {
-                logInputBox.style.height = 'auto';
-                logInputBox.style.height = (logInputBox.scrollHeight) + 'px';
-            }
+        // --- GLOBAL COLOR SPECTRUM ---
+        // Sample points (estimated) along Blue -> Purple -> Fuchsia. index 0 (flap 1) is dark blue.
+        const severitySpectrum = [
+            '#003366', // dark blue end (flap 1)
+            '#332D73', // mid blue-purple
+            '#662780', // bright purple
+            '#99208D', // mid fuchsia-purple
+            '#CC1A99', // mid fuchsia
+            '#FF14A6', // brighter pink-fuchsia
+            '#FF0DA2', // mid pink-fuchsia-pink
+            '#FF089E'  // estimated bright fuchsia/pink end (flap 8+)
+        ];
+
+        function getSeverityColor(idx) {
+            if (idx < 0) return severitySpectrum[0];
+            if (idx >= severitySpectrum.length) return severitySpectrum[severitySpectrum.length - 1];
+            return severitySpectrum[idx];
         }
 
         // --- THEME LOGIC ---
@@ -541,17 +501,22 @@ PH-PHX-CER1501#sh clock
         }
 
         function setTheme(themeName, element) {
+            // Update Body Class
             document.body.className = '';
             if (themeName !== 'default') {
                 document.body.classList.add(`theme-${themeName}`);
             }
             
+            // Save to Local Storage
             localStorage.setItem('n0c_owl_theme', themeName);
 
+            // Update UI Selection
             document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
             if(element) element.classList.add('active');
 
+            // Force Canvas to pull new colors
             updateCanvasColors();
+            toggleThemeMenu(); // close menu
         }
 
         // --- AUTO-EXPANDING TEXTAREA LOGIC ---
@@ -563,14 +528,16 @@ PH-PHX-CER1501#sh clock
 
         // --- BACKGROUND CANVAS ANIMATION ---
         let particles = [];
-        let canvasColors = ['#58a6ff', '#00e5ff']; 
+        let canvasColors = ['#00f0ff', '#ff0055']; // initial default
 
         function updateCanvasColors() {
+            // Pull the current CSS variables for the active theme
             const style = getComputedStyle(document.body);
-            const pColor = style.getPropertyValue('--accent-primary').trim() || '#58a6ff';
-            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#00e5ff';
+            const pColor = style.getPropertyValue('--accent-primary').trim() || '#00f0ff';
+            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#ff0055';
             canvasColors = [pColor, sColor];
             
+            // Update existing particles
             particles.forEach(p => {
                 p.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
             });
@@ -602,6 +569,7 @@ PH-PHX-CER1501#sh clock
                     this.y = Math.random() * canvas.height;
                     this.vx = (Math.random() - 0.5) * 0.6;
                     this.vy = (Math.random() - 0.5) * 0.6;
+                    // REFINED PARTICLE SIZE: much smaller dots
                     this.radius = Math.random() * 0.8 + 0.2; 
                     this.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
                 }
@@ -621,7 +589,7 @@ PH-PHX-CER1501#sh clock
             }
 
             for (let i = 0; i < PARTICLE_COUNT; i++) { particles.push(new Particle()); }
-            updateCanvasColors(); 
+            updateCanvasColors(); // Initialize colors based on active theme
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -638,11 +606,12 @@ PH-PHX-CER1501#sh clock
                             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
                             let opacity = 1 - (dist / CONNECT_DISTANCE);
                             
-                            ctx.strokeStyle = p1.color; 
+                            // Convert hex to rgba for stroke style based on p1.color
+                            ctx.strokeStyle = p1.color; // Using full hex, adjusting alpha is tricky in pure hex so we use globalAlpha
                             ctx.globalAlpha = opacity * 0.4;
-                            ctx.lineWidth = 0.8; 
+                            ctx.lineWidth = 0.8; // thinner lines
                             ctx.stroke();
-                            ctx.globalAlpha = 1.0; 
+                            ctx.globalAlpha = 1.0; // reset
                         }
                     }
                     
@@ -682,7 +651,9 @@ PH-PHX-CER1501#sh clock
             setTimeout(parseLogs, 100); 
         }
 
-        // --- INITIALIZATION ---
+        // --- LOCAL STORAGE MAPPING LOGIC ---
+        let localMappings = {};
+
         window.onload = function() {
             // Load Theme
             const savedTheme = localStorage.getItem('n0c_owl_theme') || 'default';
@@ -690,16 +661,10 @@ PH-PHX-CER1501#sh clock
                 document.body.classList.add(`theme-${savedTheme}`);
                 document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
                 
+                // Set the correct menu item as active based on loaded theme
                 const options = document.querySelectorAll('.theme-option');
                 if(savedTheme === 'industrial') options[1].classList.add('active');
                 if(savedTheme === 'vapor') options[2].classList.add('active');
-            }
-
-            // Load Text Size
-            const savedSize = localStorage.getItem('n0c_owl_text_size');
-            if (savedSize) {
-                document.getElementById('textSizeSlider').value = savedSize;
-                updateTextSize(savedSize);
             }
 
             try {
@@ -808,19 +773,13 @@ PH-PHX-CER1501#sh clock
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
                 if (hostMatch) currentHostname = hostMatch[1];
 
-                const logMatch = line.match(/([A-Z][a-z]{2}\s+\d+(?:\s+\d{4})?\s+\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:\s+[A-Z]{3,4})?):?\s+%BGP-5-ADJCHANGE: neighbor (\d{1,3}(?:\.\d{1,3}){3}).*?\b(Down|Up)\b/i);
-                
+                const logMatch = line.match(/([A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2}(?:\.\d{3})?):?\s+%BGP-5-ADJCHANGE: neighbor (\d{1,3}(?:\.\d{1,3}){3}) (Down|Up)/);
                 if (logMatch) {
-                    const timeStr = logMatch[1]; 
-                    const ip = logMatch[2]; 
-                    const eventType = logMatch[3].charAt(0).toUpperCase() + logMatch[3].slice(1).toLowerCase(); 
-                    
+                    const timeStr = logMatch[1]; const ip = logMatch[2]; const eventType = logMatch[3];
                     const cleanTimeStr = timeStr.replace(/\s+/g, ' '); 
                     
-                    let parseStr = cleanTimeStr;
-                    if (!/\d{4}/.test(parseStr)) parseStr += ` ${logYear}`;
-                    if (isUTC && !/UTC/.test(parseStr)) parseStr += " UTC";
-                    
+                    let parseStr = `${cleanTimeStr} ${logYear}`;
+                    if (isUTC) parseStr += " UTC";
                     const dateObj = new Date(parseStr);
 
                     if (!peers[ip]) {
@@ -882,7 +841,7 @@ PH-PHX-CER1501#sh clock
         function renderTable(peers, isUTC) {
             const resultsArea = document.getElementById('resultsArea');
             if (Object.keys(peers).length === 0) {
-                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px; font-size: var(--content-font-size);">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
+                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px;">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
                 return;
             }
 
@@ -924,35 +883,42 @@ PH-PHX-CER1501#sh clock
                         if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
 
                         if (mapping.nickname && mapping.realHostname) {
-                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: var(--content-font-size); color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
+                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
                         } else if (mapping.nickname) {
                             primaryNameHtml = `${siteBadge}${nicknameHtml}`;
                         } else if (mapping.realHostname) {
                             primaryNameHtml = `${siteBadge}${mapping.realHostname}`;
                         }
 
-                        subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">IP: ${peer.ip}</span>`;
-                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
+                        subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">IP: ${peer.ip}</span>`;
+                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
                     } else {
                         primaryNameHtml = `${siteBadge}${peer.ip}`;
-                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
+                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: 12px;">ISP: ${mapping.isp}</span>`;
                     }
+                }
+
+                // --- Overall Flap Count text with Glow ---
+                const totalFlapColor = getSeverityColor(flapCount - 1); // 0-based for spectrum
+                let pulseAnimation = '';
+                if (flapCount === 2) pulseAnimation = 'severity-pulse-base';
+                else if (flapCount >= 3) pulseAnimation = 'severity-pulse-med';
+                
+                let countPulseStyle = `color: ${totalFlapColor}; font-weight: bold; font-size: 14px;`;
+                if (pulseAnimation) {
+                    countPulseStyle += `animation: ${pulseAnimation} 1s infinite alternate;`;
                 }
 
                 let statusDisplayHtml = '';
                 if (peer.currentDownTime) {
-                    statusDisplayHtml = `<span class="flap-critical">⚠️ HARD_DOWN</span>`;
+                    // Critical puling logic kept via pulse animation on count for active hard down
+                    statusDisplayHtml = `<span class="flap-critical-pulse" style="color: var(--danger-color);">⚠️ HARD_DOWN</span>`;
                     if (flapCount > 1) {
-                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
+                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: 11px; display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
                     }
                 } else {
-                    let instanceFlapClass = '';
-                    if (flapCount === 1) instanceFlapClass = 'flap-1';
-                    else if (flapCount === 2) instanceFlapClass = 'flap-2';
-                    else if (flapCount >= 3) instanceFlapClass = 'flap-critical';
-
                     const instanceText = flapCount === 1 ? 'FAULT' : 'FAULTS';
-                    statusDisplayHtml = `<span class="${instanceFlapClass}">${flapCount} ${instanceText}</span>`;
+                    statusDisplayHtml = `<span style="${countPulseStyle}">${flapCount} ${instanceText}</span>`;
                 }
 
                 let timelineHtml = '<ul class="flap-list">';
@@ -960,6 +926,9 @@ PH-PHX-CER1501#sh clock
                     const displayTime = isUTC ? formatToPHT(flap.downDate) : flap.downStr;
                     const displayUpTime = isUTC ? formatToPHT(flap.upDate) : flap.upStr;
                     
+                    // Specific shade for this incident
+                    const incidentColor = getSeverityColor(idx); // index 0 for 1st, 1 for 2nd... 
+
                     let intervalHtml = '';
                     if (idx > 0) {
                         const prevUpDate = peer.flaps[idx - 1].upDate;
@@ -973,8 +942,8 @@ PH-PHX-CER1501#sh clock
                     timelineHtml += `
                         <li>
                             ${intervalHtml}
-                            <div class="instance-badge">INCIDENT_${getOrdinal(idx + 1)}</div><br>
-                            <span class="status-down">DN_EVENT:</span> ${displayTime} <br>
+                            <div class="instance-badge" style="color: ${getComputedStyle(document.body).getPropertyValue('--bg-color')}; background-color: ${incidentColor};">INCIDENT_${getOrdinal(idx + 1)}</div><br>
+                            <span class="status-down" style="color: ${incidentColor};">DN_EVENT:</span> ${displayTime} <br>
                             <span class="status-up">UP_EVENT:</span> ${displayUpTime} <br>
                             <span style="color:var(--text-muted);">OUTAGE_DURATION: <strong style="color:var(--text-main);">${formatDuration(flap.duration)}</strong></span>
                         </li>`;
@@ -982,7 +951,10 @@ PH-PHX-CER1501#sh clock
 
                 if (peer.currentDownTime) {
                     const displayTime = isUTC ? formatToPHT(peer.currentDownTime) : peer.currentDownStr;
-                    
+                    // Current active down also gets its severity shade based on index
+                    const activeIncidentIdx = peer.flaps.length; // e.g., 0 for 1st fault, 1 for 2nd...
+                    const activeIncidentColor = getSeverityColor(activeIncidentIdx);
+
                     let intervalHtml = '';
                     if (peer.flaps.length > 0) {
                         const prevUpDate = peer.flaps[peer.flaps.length - 1].upDate;
@@ -996,8 +968,8 @@ PH-PHX-CER1501#sh clock
                     timelineHtml += `
                         <li>
                             ${intervalHtml}
-                            <div class="instance-badge" style="background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color);">INCIDENT_${getOrdinal(peer.flaps.length + 1)} (ACTIVE)</div><br>
-                            <span class="status-down">DN_EVENT:</span> ${displayTime} <br>
+                            <div class="instance-badge" style="background-color: transparent; color: ${activeIncidentColor}; border: 1px solid ${activeIncidentColor};">INCIDENT_${getOrdinal(peer.flaps.length + 1)} (ACTIVE)</div><br>
+                            <span class="status-down" style="color: ${activeIncidentColor};">DN_EVENT:</span> ${displayTime} <br>
                             > <em>AWAITING UPSTREAM RECOVERY LOG...</em>
                         </li>`;
                 }
@@ -1009,12 +981,12 @@ PH-PHX-CER1501#sh clock
                 html += `
                     <tr class="animated-row" style="animation-delay: ${rowIndex * 0.1}s">
                         <td>
-                            <span style="font-size: calc(var(--content-font-size) + 2px); font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
+                            <span style="font-size: 15px; font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
                             ${subDetails}
                         </td>
                         <td>
                             ${statusDisplayHtml}<br>
-                            <span style="color:var(--text-muted); font-size:calc(var(--content-font-size) - 2px); display:inline-block; margin-top:4px;">
+                            <span style="color:var(--text-muted); font-size:11px; display:inline-block; margin-top:4px;">
                                 (RAW_METRICS: ${peer.rawDowns} DN, ${peer.rawUps} UP)
                             </span>
                         </td>
