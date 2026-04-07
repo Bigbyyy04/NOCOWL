@@ -8,22 +8,22 @@
     <style>
         /* --- GLOBAL THEME VARIABLES --- */
         :root {
-            /* DEFAULT: Cyber Original */
-            --bg-color: #050507; 
-            --panel-bg: rgba(10, 12, 16, 0.85); 
-            --panel-border: #1f2229;
-            --grid-color: rgba(255, 255, 255, 0.03);
+            /* DEFAULT: NOC Standard (Professional Tech) */
+            --bg-color: #0d1117; 
+            --panel-bg: rgba(22, 27, 34, 0.85); 
+            --panel-border: #30363d;
+            --grid-color: rgba(255, 255, 255, 0.02);
             
-            --text-main: #e0e0e0;
-            --text-muted: #6b7280;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
             
-            --accent-primary: #00f0ff; /* Cyan */
-            --accent-secondary: #ff0055; /* Pink */
-            --razer-green: #00FF00;
+            --accent-primary: #58a6ff; /* Pro Tech Blue */
+            --accent-secondary: #00e5ff; /* Tech Cyan */
+            --logo-accent: #00e5ff; /* Cyan block for the Ø */
             
-            --success-color: #39ff14; 
-            --danger-color: var(--accent-secondary);
-            --warning-color: #fcee0a;
+            --success-color: #3fb950; 
+            --danger-color: #f85149;
+            --warning-color: #d29922;
         }
 
         /* THEME: Industrial Flare (Taupe/Orange) */
@@ -38,7 +38,7 @@
             
             --accent-primary: #f38200; /* Orange */
             --accent-secondary: #eeb052; /* Gold */
-            --razer-green: #f38200; 
+            --logo-accent: #f38200; 
             
             --success-color: #eeb052; 
             --danger-color: #f38200;
@@ -57,7 +57,7 @@
             
             --accent-primary: #fd65ff; /* Fuchsia */
             --accent-secondary: #7cf14f; /* Neon Green */
-            --razer-green: #7cf14f; 
+            --logo-accent: #7cf14f; 
             
             --success-color: #b0dea4; /* Light Sage Green */
             --danger-color: #fd65ff; /* Fuchsia */
@@ -163,12 +163,12 @@
         .brand-text { color: var(--text-main); letter-spacing: 2px; }
 
         .brand-highlight {
-            background-color: var(--razer-green);
+            background-color: var(--logo-accent);
             color: var(--bg-color); 
             padding: 0 6px;
             margin: -2px 6px; 
             letter-spacing: 0;
-            box-shadow: 0 0 12px var(--razer-green);
+            box-shadow: 0 0 12px var(--logo-accent);
             transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
@@ -286,13 +286,9 @@
             margin-bottom: 20px; 
             white-space: pre; 
             overflow-y: hidden; /* For Auto Expand */
-            resize: none; /* Prevents dragging/breaking the layout */
+            resize: none; 
         }
-        #mappingInput { 
-            height: 100px; 
-            white-space: pre; 
-            resize: vertical; /* Kept vertical resize for the DB mapping if needed */
-        }
+        #mappingInput { height: 100px; white-space: pre; }
 
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 
@@ -401,7 +397,7 @@
             <div id="settingsMenu">
                 <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">// UI SCHEMATICS</div>
                 <div class="theme-option active" onclick="setTheme('default', this)">
-                    <span class="theme-swatch" style="background:#00f0ff;"></span> CYBER ORIGINAL
+                    <span class="theme-swatch" style="background:#58a6ff;"></span> NOC STANDARD
                 </div>
                 <div class="theme-option" onclick="setTheme('industrial', this)">
                     <span class="theme-swatch" style="background:#f38200;"></span> INDUSTRIAL FLARE
@@ -497,13 +493,13 @@ PH-PHX-CER1501#sh clock
 
         // --- BACKGROUND CANVAS ANIMATION ---
         let particles = [];
-        let canvasColors = ['#00f0ff', '#ff0055']; // initial default
+        let canvasColors = ['#58a6ff', '#00e5ff']; // initial default for NOC STANDARD
 
         function updateCanvasColors() {
             // Pull the current CSS variables for the active theme
             const style = getComputedStyle(document.body);
-            const pColor = style.getPropertyValue('--accent-primary').trim() || '#00f0ff';
-            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#ff0055';
+            const pColor = style.getPropertyValue('--accent-primary').trim() || '#58a6ff';
+            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#00e5ff';
             canvasColors = [pColor, sColor];
             
             // Update existing particles
@@ -538,7 +534,8 @@ PH-PHX-CER1501#sh clock
                     this.y = Math.random() * canvas.height;
                     this.vx = (Math.random() - 0.5) * 0.6;
                     this.vy = (Math.random() - 0.5) * 0.6;
-                    this.radius = Math.random() * 1.5 + 0.5;
+                    // REFINED PARTICLE SIZE: Much smaller dots for a subtle look
+                    this.radius = Math.random() * 0.8 + 0.2; 
                     this.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
                 }
                 update() {
@@ -551,7 +548,7 @@ PH-PHX-CER1501#sh clock
                     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                     ctx.fillStyle = this.color;
                     ctx.fill();
-                    ctx.shadowBlur = 5;
+                    ctx.shadowBlur = 3;
                     ctx.shadowColor = this.color;
                 }
             }
@@ -574,12 +571,11 @@ PH-PHX-CER1501#sh clock
                             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
                             let opacity = 1 - (dist / CONNECT_DISTANCE);
                             
-                            // Convert hex to rgba for stroke style based on p1.color
-                            ctx.strokeStyle = p1.color; // Using full hex, adjusting alpha is tricky in pure hex so we use globalAlpha
+                            ctx.strokeStyle = p1.color; 
                             ctx.globalAlpha = opacity * 0.4;
-                            ctx.lineWidth = 1;
+                            ctx.lineWidth = 0.8; // Thinner lines
                             ctx.stroke();
-                            ctx.globalAlpha = 1.0; // reset
+                            ctx.globalAlpha = 1.0; 
                         }
                     }
                     
@@ -591,7 +587,7 @@ PH-PHX-CER1501#sh clock
                             let opacityMouse = 1 - (distMouse / MOUSE_CONNECT_DISTANCE);
                             ctx.strokeStyle = p1.color;
                             ctx.globalAlpha = opacityMouse * 0.6;
-                            ctx.lineWidth = 1.5;
+                            ctx.lineWidth = 1.2;
                             ctx.stroke();
                             ctx.globalAlpha = 1.0;
                         }
