@@ -233,7 +233,7 @@
         ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        .instance-badge { color: var(--bg-color); padding: 2px 6px; font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase; }
+        .instance-badge { color: var(--bg-color); background-color: var(--text-muted); padding: 2px 6px; font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase; }
         .interval-badge { color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; padding-left: 8px; border-left: 2px solid var(--accent-secondary); display: inline-block; }
         .site-badge { font-size: calc(var(--content-font-size) - 2px); padding: 2px 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle; }
     </style>
@@ -484,8 +484,11 @@ PH-PHX-CER1501#sh clock
             setTimeout(parseLogs, 100); 
         }
 
-        // --- INITIALIZATION ---
+        // --- LOCAL STORAGE MAPPING LOGIC ---
+        let localMappings = {};
+
         window.onload = function() {
+            // Load Theme
             const savedTheme = localStorage.getItem('n0c_owl_theme') || 'default';
             if(savedTheme !== 'default') {
                 document.body.classList.add(`theme-${savedTheme}`);
@@ -495,6 +498,7 @@ PH-PHX-CER1501#sh clock
                 if(savedTheme === 'vapor') options[2].classList.add('active');
             }
 
+            // Load Text Size
             const savedSize = localStorage.getItem('n0c_owl_text_size');
             if (savedSize) {
                 document.getElementById('textSizeSlider').value = savedSize;
@@ -580,18 +584,24 @@ PH-PHX-CER1501#sh clock
         // --- BGP PARSER LOGIC ---
         function parseLogs() {
             const rawText = document.getElementById('logInput').value;
-            const lines = rawText.split('\n');
+            // Clean up invisible whitespace characters that break Date parsing
+            const normalizedText = rawText.replace(/[\u00A0\u1680\u2000-\u200A\u2028\u202F\u205F\u3000]/g, ' ');
+            const lines = normalizedText.split('\n');
             const peers = {};
             let isUTC = false; let logYear = new Date().getFullYear();
             let currentHostname = "Unknown-Router"; 
 
+            // Pass 1: Timezone and Router Name
             lines.forEach(line => {
+                line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
                 if (hostMatch) currentHostname = hostMatch[1];
-                const clockMatch = line.match(/\d{2}:\d{2}:\d{2}(?:\.\d{3})?\s+([A-Z]{3,4})\s+[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d+\s+(\d{4})/);
-                if (clockMatch) {
-                    if (clockMatch[1] === 'UTC') isUTC = true;
-                    logYear = clockMatch[2];
+                
+                // Flexible clock match
+                if (line.match(/\d{2}:\d{2}:\d{2}/) && line.match(/\b(20\d{2})\b/)) {
+                    const yearMatch = line.match(/\b(20\d{2})\b/);
+                    if (yearMatch) logYear = yearMatch[1];
+                    if (line.includes('UTC')) isUTC = true;
                 }
             });
 
@@ -601,20 +611,24 @@ PH-PHX-CER1501#sh clock
                 alertBox.innerText = `> UTC CLOCK DETECTED. APPLYING PHT TEMPORAL OFFSET (+8h)...`;
             } else { alertBox.style.display = 'none'; }
 
+            // Pass 2: Flap Extraction (INDESTRUCTIBLE REGEX)
             lines.forEach(line => {
                 line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
-                if (hostMatch) currentHostname = hostMatch[1];
+                if (hostMatch) {
+                    currentHostname = hostMatch[1];
+                    line = line.substring(hostMatch[0].length).trim();
+                }
 
-                const logMatch = line.match(/([A-Z][a-z]{2}\s+\d+(?:\s+\d{4})?\s+\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:\s+[A-Z]{3,4})?):?\s+%BGP-5-ADJCHANGE: neighbor (\d{1,3}(?:\.\d{1,3}){3}).*?\b(Down|Up)\b/i);
+                // Grab everything before %BGP, the IP, and Down/Up
+                const logMatch = line.match(/(.*?)\s*%BGP-5-ADJCHANGE:\s*neighbor\s+(\d{1,3}(?:\.\d{1,3}){3}).*?\b(Down|Up)\b/i);
                 
                 if (logMatch) {
-                    const timeStr = logMatch[1]; 
+                    let timeStr = logMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
                     const ip = logMatch[2]; 
                     const eventType = logMatch[3].charAt(0).toUpperCase() + logMatch[3].slice(1).toLowerCase(); 
-                    const cleanTimeStr = timeStr.replace(/\s+/g, ' '); 
                     
-                    let parseStr = cleanTimeStr;
+                    let parseStr = timeStr.replace(/\s+/g, ' '); 
                     if (!/\d{4}/.test(parseStr)) parseStr += ` ${logYear}`;
                     if (isUTC && !/UTC/.test(parseStr)) parseStr += " UTC";
                     
@@ -627,13 +641,16 @@ PH-PHX-CER1501#sh clock
                     if (eventType === 'Down') {
                         peers[ip].rawDowns++;
                         if (!peers[ip].currentDownTime) {
-                            peers[ip].flapInstances++; peers[ip].currentDownTime = dateObj; peers[ip].currentDownStr = timeStr;
+                            peers[ip].flapInstances++; peers[ip].currentDownTime = dateObj; peers[ip].currentDownStr = timeStr || "Unknown Time";
                         }
                     } else if (eventType === 'Up') {
                         peers[ip].rawUps++;
                         if (peers[ip].currentDownTime) {
-                            const durationMs = dateObj.getTime() - peers[ip].currentDownTime.getTime();
-                            peers[ip].flaps.push({ downDate: peers[ip].currentDownTime, downStr: peers[ip].currentDownStr, upDate: dateObj, upStr: timeStr, duration: durationMs });
+                            let durationMs = 0;
+                            if (!isNaN(dateObj) && !isNaN(peers[ip].currentDownTime)) {
+                                durationMs = dateObj.getTime() - peers[ip].currentDownTime.getTime();
+                            }
+                            peers[ip].flaps.push({ downDate: peers[ip].currentDownTime, downStr: peers[ip].currentDownStr, upDate: dateObj, upStr: timeStr || "Unknown Time", duration: durationMs });
                             peers[ip].currentDownTime = null; 
                         }
                     }
