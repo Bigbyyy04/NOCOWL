@@ -193,7 +193,7 @@
         .mapping-controls { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
 
         /* --- Inputs --- */
-        .instructions { background-color: rgba(255,255,255,0.02); padding: 12px 15px; border-left: 3px solid var(--accent-primary); margin-bottom: 20px; font-size: var(--content-font-size); line-height: 1.5; color: var(--text-muted); }
+        .instructions { background-color: rgba(255,255,255,0.02); padding: 12px 15px; border-left: 3px solid var(--accent-primary); margin-bottom: 20px; font-size: var(--content-font-size); line-height: 1.5; color: var(--text-muted); transition: border-color 0.5s ease; }
         textarea { width: 100%; background-color: rgba(0, 0, 0, 0.4); color: var(--text-main); border: 1px solid var(--panel-border); padding: 12px; font-family: inherit; font-size: var(--content-font-size); box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
         textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: inset 2px 0 0 var(--accent-primary); }
         #logInput { min-height: 180px; margin-bottom: 20px; white-space: pre; overflow-y: hidden; resize: none; }
@@ -238,18 +238,21 @@
         .interval-badge { color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; padding-left: 8px; border-left: 2px solid var(--accent-secondary); display: inline-block; }
         .site-badge { font-size: calc(var(--content-font-size) - 2px); padding: 2px 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle; }
 
-        /* --- CID Summary Box --- */
+        /* --- Summary Boxes --- */
+        .summary-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 25px;
+        }
         .cid-summary-box {
-            margin-top: 25px; 
             padding: 15px; 
             background: rgba(0,0,0,0.4); 
             border: 1px solid var(--panel-border); 
-            border-left: 3px solid var(--accent-primary);
             display: none;
             animation: slideRightFade 0.4s forwards;
         }
         .cid-summary-title {
-            color: var(--accent-primary); 
             font-weight: bold; 
             margin-bottom: 10px; 
             font-size: calc(var(--content-font-size) + 1px); 
@@ -344,10 +347,18 @@ PH-PHX-CER1501#sh clock
         <div id="timezoneAlert" class="alert alert-info"></div>
         <div id="resultsArea"></div>
         
-        <div id="cidSummaryArea" class="cid-summary-box">
-            <div class="cid-summary-title">📋 AFFECTED CIRCUIT IDs (COPY FOR REPORT)</div>
-            <div class="cid-summary-content" id="cidSummaryContent"></div>
+        <div class="summary-wrapper">
+            <div id="incidentSummaryArea" class="cid-summary-box" style="border-left-color: var(--warning-color);">
+                <div class="cid-summary-title" style="color: var(--warning-color);">📊 INCIDENT SUMMARY REPORT (COPY FOR TICKET)</div>
+                <div class="cid-summary-content" id="incidentSummaryContent"></div>
+            </div>
+
+            <div id="cidSummaryArea" class="cid-summary-box" style="border-left-color: var(--accent-primary);">
+                <div class="cid-summary-title" style="color: var(--accent-primary);">📋 AFFECTED CIRCUIT IDs</div>
+                <div class="cid-summary-content" id="cidSummaryContent"></div>
+            </div>
         </div>
+
     </div>
 
     <script>
@@ -580,12 +591,11 @@ PH-PHX-CER1501#sh clock
 
                     let isp = '';
                     let cid = '';
-                    // Split the right side by hyphen to separate ISP and CID
                     let rightTokens = rightPart.replace(/[\[\]]/g, ' ').split(/\s+-\s+/).map(t => t.trim()).filter(t => t);
                     
                     if (rightTokens.length >= 2) {
-                        cid = rightTokens.pop(); // The last item is the CID
-                        isp = rightTokens.join(' - '); // Everything else is ISP
+                        cid = rightTokens.pop(); 
+                        isp = rightTokens.join(' - '); 
                     } else if (rightTokens.length === 1) {
                         isp = rightTokens[0];
                     }
@@ -730,12 +740,16 @@ PH-PHX-CER1501#sh clock
         // --- RENDER TABLE ---
         function renderTable(peers, isUTC) {
             const resultsArea = document.getElementById('resultsArea');
-            const summaryArea = document.getElementById('cidSummaryArea');
-            const summaryContent = document.getElementById('cidSummaryContent');
+            const cidSummaryArea = document.getElementById('cidSummaryArea');
+            const cidSummaryContent = document.getElementById('cidSummaryContent');
+            
+            const incidentSummaryArea = document.getElementById('incidentSummaryArea');
+            const incidentSummaryContent = document.getElementById('incidentSummaryContent');
             
             if (Object.keys(peers).length === 0) {
                 resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px; font-size: var(--content-font-size);">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
-                summaryArea.style.display = 'none';
+                cidSummaryArea.style.display = 'none';
+                incidentSummaryArea.style.display = 'none';
                 return;
             }
 
@@ -752,7 +766,8 @@ PH-PHX-CER1501#sh clock
             `;
 
             let rowIndex = 0;
-            let summaryLines = [];
+            let cidSummaryLines = [];
+            let incidentSummaryData = []; // Array to hold objects for the new Incident Summary
 
             for (const ip in peers) {
                 const peer = peers[ip];
@@ -762,7 +777,7 @@ PH-PHX-CER1501#sh clock
                 let primaryNameHtml = peer.ip; 
                 let subDetails = ''; let siteBadge = ''; let glowClass = '';
                 
-                // Track name for CID summary
+                // Track name for summaries
                 let plainNameForSummary = peer.ip;
 
                 if (mapping) {
@@ -778,7 +793,7 @@ PH-PHX-CER1501#sh clock
 
                     if (mapping.nickname || mapping.realHostname) {
                         let nicknameHtml = mapping.nickname;
-                        plainNameForSummary = mapping.nickname || mapping.realHostname;
+                        plainNameForSummary = (mapping.siteCode && mapping.siteType ? `[${mapping.siteCode} ${mapping.siteType}] ` : '') + (mapping.nickname || mapping.realHostname);
                         
                         if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
 
@@ -799,14 +814,21 @@ PH-PHX-CER1501#sh clock
                     
                     if (mapping.cid) {
                         subDetails += `<br><span style="color: var(--accent-secondary); font-size: calc(var(--content-font-size) - 1px); font-family: monospace;">CID: ${mapping.cid}</span>`;
-                        summaryLines.push(`${plainNameForSummary} - ${mapping.cid}`);
+                        cidSummaryLines.push(`${mapping.nickname || mapping.realHostname || peer.ip} - ${mapping.cid}`);
                     }
                 }
 
+                // --- Overall Flap Count logic with Specific Colors and Glow ---
                 let summaryStyle = '';
                 let statusDisplayHtml = '';
+                let lastFaultTimeStr = 'N/A';
+                let lastFaultDurationStr = 'N/A';
                 
                 if (peer.currentDownTime) {
+                    // HARD DOWN
+                    lastFaultTimeStr = isUTC ? formatToPHT(peer.currentDownTime) : peer.currentDownStr;
+                    lastFaultDurationStr = 'HARD DOWN (ONGOING)';
+
                     summaryStyle = 'color: #ff00d0; font-weight: bold; font-size: calc(var(--content-font-size) + 2px); animation: pulse-hard-down 0.5s infinite; display: inline-block;';
                     statusDisplayHtml = `<span style="${summaryStyle}">⚠️ HARD_DOWN</span>`;
                     if (flapCount > 1) {
@@ -828,7 +850,21 @@ PH-PHX-CER1501#sh clock
                     }
                     summaryStyle = `color: ${color}; font-weight: bold; font-size: calc(var(--content-font-size) + 1px); animation: ${anim}; display: inline-block;`;
                     statusDisplayHtml = `<span style="${summaryStyle}">${flapCount} ${instanceText}</span>`;
+
+                    if (peer.flaps.length > 0) {
+                        let lastFlap = peer.flaps[peer.flaps.length - 1];
+                        lastFaultTimeStr = isUTC ? formatToPHT(lastFlap.downDate) : lastFlap.downStr;
+                        lastFaultDurationStr = `RECOVERED (Outage: ${formatDuration(lastFlap.duration)})`;
+                    }
                 }
+
+                // Push to Incident Summary Data Array
+                incidentSummaryData.push({
+                    name: plainNameForSummary,
+                    flaps: flapCount,
+                    lastTime: lastFaultTimeStr,
+                    duration: lastFaultDurationStr
+                });
 
                 let timelineHtml = '<ul class="flap-list">';
                 peer.flaps.forEach((flap, idx) => {
@@ -905,13 +941,35 @@ PH-PHX-CER1501#sh clock
             html += `</tbody></table>`;
             resultsArea.innerHTML = html;
 
-            // Handle CID Summary Display
-            if (summaryLines.length > 0) {
-                summaryContent.innerText = summaryLines.join('\n');
-                summaryArea.style.display = 'block';
+            // --- Populate Incident Summary Report ---
+            if (incidentSummaryData.length > 0) {
+                // Determine column widths for perfect monospace alignment
+                let maxNameLen = Math.max(...incidentSummaryData.map(d => d.name.length), 22);
+                let lines = [];
+                
+                // Header
+                lines.push(`SITE / PEER`.padEnd(maxNameLen) + ` | FAULTS | LAST FAULT DETECTED`.padEnd(34) + ` | STATUS & OUTAGE_INTERVAL`);
+                lines.push('-'.repeat(maxNameLen + 65));
+                
+                // Rows
+                incidentSummaryData.forEach(d => {
+                    let flapStr = `${d.flaps}`.padEnd(6);
+                    lines.push(`${d.name.padEnd(maxNameLen)} | ${flapStr} | ${d.lastTime.padEnd(31)} | ${d.duration}`);
+                });
+
+                incidentSummaryContent.innerText = lines.join('\n');
+                incidentSummaryArea.style.display = 'block';
             } else {
-                summaryArea.style.display = 'none';
-                summaryContent.innerText = '';
+                incidentSummaryArea.style.display = 'none';
+            }
+
+            // --- Populate CID Summary Area ---
+            if (cidSummaryLines.length > 0) {
+                cidSummaryContent.innerText = cidSummaryLines.join('\n');
+                cidSummaryArea.style.display = 'block';
+            } else {
+                cidSummaryArea.style.display = 'none';
+                cidSummaryContent.innerText = '';
             }
         }
     </script>
