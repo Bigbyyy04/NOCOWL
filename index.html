@@ -3,53 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N0COWL</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦉</text></svg>">
+    <title>Network Analyzer</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         /* --- GLOBAL THEME VARIABLES --- */
         :root {
-            --bg-color: #0d1117; 
-            --panel-bg: rgba(22, 27, 34, 0.85); 
-            --panel-border: #30363d;
-            --grid-color: rgba(255, 255, 255, 0.02);
+            /* DEFAULT: Professional Dark Green / Mint */
+            --bg-color: #0c170b; 
+            --panel-bg: rgba(18, 30, 18, 0.85); 
+            --panel-border: #234022;
+            --grid-color: rgba(53, 208, 115, 0.05);
             
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
+            --text-main: #e2ede2;
+            --text-muted: #8c9e8c;
             
-            --accent-primary: #58a6ff; 
-            --accent-secondary: #00e5ff; 
+            --accent-primary: #35d073; /* Bright Mint Green */
+            --accent-secondary: #23934f; /* Darker Mint */
             --logo-accent: #00FF00; /* Razer Green */
             
-            --success-color: #3fb950; 
+            --success-color: #35d073; 
             --danger-color: #f85149;
             --warning-color: #d29922;
 
             /* Dynamic Text Scale Variable */
-            --content-font-size: 13px;
+            --content-font-size: 14px; 
         }
 
+        /* THEME: Industrial Flare */
         body.theme-industrial {
-            --bg-color: #252525; 
-            --panel-bg: rgba(37, 37, 37, 0.85); 
-            --panel-border: #7a706b;
-            --grid-color: rgba(122, 112, 107, 0.1);
-            --text-main: #c2cbd2;
-            --text-muted: #a0a6ac;
-            --accent-primary: #f38200; 
-            --accent-secondary: #eeb052; 
-            --logo-accent: #f38200; 
+            --bg-color: #252525; --panel-bg: rgba(37, 37, 37, 0.85); --panel-border: #7a706b;
+            --grid-color: rgba(122, 112, 107, 0.1); --text-main: #c2cbd2; --text-muted: #a0a6ac;
+            --accent-primary: #f38200; --accent-secondary: #eeb052; --logo-accent: #f38200; 
         }
 
-        body.theme-vapor {
-            --bg-color: #120a17; 
-            --panel-bg: rgba(26, 15, 33, 0.85); 
-            --panel-border: #5c2f70; 
-            --grid-color: rgba(92, 47, 112, 0.2);
-            --text-main: #e6e6e6;
-            --text-muted: #957da3;
-            --accent-primary: #fd65ff; 
-            --accent-secondary: #7cf14f; 
-            --logo-accent: #7cf14f; 
+        /* THEME: Original Cyber Blue */
+        body.theme-cyber {
+            --bg-color: #0d1117; --panel-bg: rgba(22, 27, 34, 0.85); --panel-border: #30363d;
+            --grid-color: rgba(255, 255, 255, 0.02); --text-main: #c9d1d9; --text-muted: #8b949e;
+            --accent-primary: #58a6ff; --accent-secondary: #00e5ff; --logo-accent: #58a6ff; 
+        }
+
+        /* THEME: M1M0 (Indigo / Cyan Palette) */
+        body.theme-m1m0 {
+            --bg-color: #3f4268; 
+            --panel-bg: rgba(80, 85, 129, 0.85); 
+            --panel-border: #dbe6fc; 
+            --grid-color: rgba(55, 219, 206, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #dbe6fc;
+            --accent-primary: #37dbce; 
+            --accent-secondary: #8cf0e7; 
+            --logo-accent: #37dbce; 
         }
 
         /* --- Custom Fault Count Animations --- */
@@ -71,16 +81,15 @@
             100% { text-shadow: 0 0 5px rgba(255, 0, 208, 0.6); transform: scale(1); }
         }
 
-        /* --- Futuristic Scrollbar --- */
-        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); border-left: 1px solid var(--panel-border); }
-        ::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border: 3px solid var(--bg-color); border-radius: 0; }
+        ::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 5px; border: 2px solid var(--bg-color); }
         ::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); }
-        ::-webkit-scrollbar-corner { background: var(--bg-color); }
         * { scrollbar-width: thin; scrollbar-color: var(--accent-primary) var(--bg-color); }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Nunito', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -94,177 +103,182 @@
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        #networkCanvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; pointer-events: none; 
-        }
+        #networkCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1; 
-            background: var(--panel-bg); 
-            padding: 30px 40px;
-            border: 1px solid var(--panel-border);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.9);
-            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; 
+            background: var(--panel-bg); padding: 30px 40px;
+            border: 1px solid var(--panel-border); border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             transition: background-color 0.5s ease, border-color 0.5s ease;
         }
 
-        /* --- Sticky Terminal Header --- */
+        /* --- Sticky Header --- */
         .app-header {
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--panel-border);
-            
-            position: sticky;
-            top: -30px; 
-            z-index: 100;
-            background: var(--panel-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            
-            margin-top: -30px;
-            margin-left: -40px;
-            margin-right: -40px;
-            margin-bottom: 25px;
-            padding: 30px 40px 15px 40px; 
-            box-shadow: 0 10px 15px -10px rgba(0,0,0,0.5);
+            display: flex; align-items: center; border-bottom: 1px solid var(--panel-border);
+            position: sticky; top: -30px; z-index: 100;
+            background: var(--panel-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            margin-top: -30px; margin-left: -40px; margin-right: -40px; margin-bottom: 25px;
+            padding: 30px 40px 15px 40px; box-shadow: 0 10px 15px -10px rgba(0,0,0,0.3);
+            border-top-left-radius: 8px; border-top-right-radius: 8px;
         }
 
         .gear-btn-box {
-            width: 32px; height: 32px;
-            background-color: rgba(0,0,0,0.3);
-            border: 1px solid var(--panel-border);
+            width: 32px; height: 32px; background-color: rgba(255,255,255,0.05);
+            border: 1px solid var(--panel-border); border-radius: 6px;
             display: flex; align-items: center; justify-content: center;
             margin-right: 18px; color: var(--text-muted); font-size: 16px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
             cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .gear-btn-box:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            box-shadow: 0 0 8px var(--accent-primary);
-        }
+        .gear-btn-box:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 
-        .app-branding { display: flex; align-items: center; font-size: 30px; font-weight: 800; text-transform: uppercase; }
-        .brand-text { color: var(--text-main); letter-spacing: 2px; }
+        /* Cyberpunk Logo restored */
+        .app-branding { display: flex; align-items: center; font-size: 28px; font-weight: 800; text-transform: uppercase; }
+        .brand-text { color: var(--text-main); letter-spacing: 2px; text-shadow: 0 0 5px rgba(255, 255, 255, 0.1); }
         .brand-highlight {
             background-color: var(--logo-accent); color: var(--bg-color); 
             padding: 0 6px; margin: -2px 6px; letter-spacing: 0;
-            box-shadow: 0 0 12px var(--logo-accent);
+            box-shadow: 0 0 12px var(--logo-accent); border-radius: 2px;
             transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
-        .app-subtext { color: var(--text-muted); font-size: 14px; font-weight: 600; margin-left: 20px; letter-spacing: 1px; position: relative; top: 2px; }
+        .app-subtext { color: var(--text-muted); font-size: 14px; font-weight: 700; margin-left: 20px; letter-spacing: 1px; position: relative; top: 2px; }
 
         /* --- Theme Settings Menu --- */
         #settingsMenu {
             display: none; position: absolute; top: 70px; left: 40px;
-            background-color: var(--panel-bg); border: 1px solid var(--accent-primary);
-            padding: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.9); z-index: 101; min-width: 250px;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            background-color: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 6px;
+            padding: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); z-index: 101; min-width: 250px;
         }
         .theme-option {
-            display: flex; align-items: center; padding: 8px 10px; cursor: pointer;
+            display: flex; align-items: center; padding: 8px 10px; cursor: pointer; border-radius: 4px;
             margin-bottom: 5px; border: 1px solid transparent; transition: all 0.2s;
-            color: var(--text-muted); font-size: 12px; text-transform: uppercase;
+            color: var(--text-muted); font-size: 13px; font-weight: 600;
         }
-        .theme-option:hover { background-color: rgba(255,255,255,0.05); border-color: var(--panel-border); color: var(--text-main); }
-        .theme-option.active { border-color: var(--accent-primary); color: var(--accent-primary); background-color: rgba(0,0,0,0.3); }
-        .theme-swatch { width: 12px; height: 12px; margin-right: 10px; display: inline-block; }
+        .theme-option:hover { background-color: rgba(255,255,255,0.05); color: var(--text-main); }
+        .theme-option.active { border-color: var(--accent-primary); color: var(--accent-primary); background-color: rgba(0,0,0,0.2); }
+        .theme-swatch { width: 12px; height: 12px; margin-right: 10px; border-radius: 50%; display: inline-block; }
 
         /* Text Slider Styling */
-        .slider-container { margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--panel-border); }
-        .slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; }
+        .slider-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--panel-border); }
+        .slider-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; font-weight: 700; }
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 8px; background: var(--accent-primary); cursor: pointer; border-radius: 0; margin-top: -6px; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--panel-border); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--accent-primary); cursor: pointer; border-radius: 50%; margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--panel-border); border-radius: 2px;}
+
+        /* --- Timezone Widget --- */
+        .tz-widget { display: flex; align-items: center; gap: 8px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: var(--text-main); background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); padding: 8px 12px; border-radius: 6px; white-space: nowrap; margin-left: auto; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
+        .live-dot { width: 8px; height: 8px; background-color: var(--accent-primary); border-radius: 50%; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
+        .live-dot.pulse { box-shadow: 0 0 8px var(--accent-primary); animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        .live-dot.paused { background-color: var(--warning-color); box-shadow: 0 0 8px var(--warning-color); animation: none; }
+        .tz-time-input { background: transparent; color: var(--text-main); border: none; font-family: 'Courier New', Courier, monospace; font-size: 12px; outline: none; cursor: text; width: 95px; padding: 0; text-align: center; transition: color 0.2s; }
+        .tz-time-input::-webkit-calendar-picker-indicator { display: none; }
+        .tz-time-input:focus { color: #fff; border-bottom: 1px solid var(--accent-primary); margin-bottom: -1px; }
+        .tz-select { background: transparent; color: var(--accent-primary); border: none; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; padding-right: 4px; }
+        .tz-select.source-tz { color: var(--text-main); font-weight: normal; } 
+        .tz-select option { background: var(--panel-bg); color: var(--accent-primary); } 
+        .tz-select.source-tz option { color: var(--text-main); } 
+        .tz-select:hover { text-decoration: underline; } 
+        #convertedTimeDisplay { white-space: nowrap; min-width: 65px; color: var(--accent-primary); font-weight: bold; }
+        .fmt-toggle { background: transparent; color: var(--text-muted); border: 1px solid var(--panel-border); padding: 2px 6px; font-size: 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: 'Courier New', Courier, monospace; margin-right: 6px; white-space: nowrap; flex-shrink: 0; }
+        .fmt-toggle:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
 
         /* --- DB Card --- */
-        .db-card { background-color: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); border-left: 3px solid var(--accent-secondary); margin-bottom: 25px; overflow: hidden; transition: border-color 0.5s ease; }
-        .db-header { padding: 12px 15px; cursor: pointer; font-weight: bold; color: var(--accent-secondary); display: flex; justify-content: space-between; align-items: center; background-color: rgba(255,255,255,0.02); text-transform: uppercase; font-size: var(--content-font-size); }
+        .db-card { background-color: rgba(0,0,0,0.15); border: 1px solid var(--panel-border); border-radius: 6px; margin-bottom: 25px; overflow: hidden; transition: border-color 0.5s ease; }
+        .db-header { padding: 15px; cursor: pointer; font-weight: 700; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; background-color: rgba(255,255,255,0.02); font-size: 14px; border-bottom: 1px solid transparent; transition: background-color 0.2s;}
         .db-header:hover { background-color: rgba(255,255,255,0.05); }
-        .db-chevron { transition: transform 0.3s ease; font-size: 12px; }
+        .db-header.open { border-bottom-color: var(--panel-border); }
+        .db-chevron { transition: transform 0.3s ease; font-size: 12px; color: var(--accent-primary); }
         .db-chevron.open { transform: rotate(180deg); }
+        
         .db-content-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s; }
         .db-content-wrapper.open { grid-template-rows: 1fr; }
         .db-content { overflow: hidden; padding: 0 15px; }
         .mapping-controls { margin-top: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
 
         /* --- Inputs --- */
-        .instructions { background-color: rgba(255,255,255,0.02); padding: 12px 15px; border-left: 3px solid var(--accent-primary); margin-bottom: 20px; font-size: var(--content-font-size); line-height: 1.5; color: var(--text-muted); transition: border-color 0.5s ease; }
-        textarea { width: 100%; background-color: rgba(0, 0, 0, 0.4); color: var(--text-main); border: 1px solid var(--panel-border); padding: 12px; font-family: inherit; font-size: var(--content-font-size); box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
-        textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: inset 2px 0 0 var(--accent-primary); }
-        #logInput { min-height: 180px; margin-bottom: 20px; white-space: pre; overflow-y: hidden; resize: none; }
+        .instructions { background-color: rgba(255,255,255,0.02); border-radius: 6px; padding: 15px; border-left: 4px solid var(--accent-primary); margin-bottom: 20px; font-size: var(--content-font-size); font-weight: 600; line-height: 1.6; color: var(--text-muted); }
+        
+        code { font-family: 'Courier New', Courier, monospace; background: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 4px; }
+        
+        textarea { 
+            width: 100%; background-color: rgba(0, 0, 0, 0.2); color: var(--text-main); 
+            border: 1px solid var(--panel-border); border-radius: 6px; padding: 15px; 
+            font-family: 'Courier New', Courier, monospace; font-weight: 500; font-size: var(--content-font-size); 
+            box-sizing: border-box; transition: border-color 0.2s; 
+        }
+        textarea:focus { outline: none; border-color: var(--accent-primary); }
+        #logInput { min-height: 160px; margin-bottom: 20px; white-space: pre; overflow-y: hidden; resize: none; }
         #mappingInput { height: 100px; white-space: pre; }
 
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
-        button { font-family: inherit; border: none; cursor: pointer; text-transform: uppercase; font-weight: bold; transition: all 0.2s; }
-        button.secondary { background-color: var(--panel-border); color: var(--bg-color); padding: 6px 15px; font-size: 12px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
-        button.secondary:hover { background-color: var(--accent-secondary); }
-        button.small-btn { padding: 6px 15px; font-size: 12px; background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
-        button.small-btn:hover { background-color: var(--danger-color); color: var(--bg-color); }
-        .btn-analyze { background-color: var(--accent-primary); color: var(--bg-color); padding: 10px 30px; font-size: 15px; letter-spacing: 2px; clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); box-shadow: 0 0 10px var(--accent-primary); }
-        .btn-analyze:hover { background-color: var(--text-main); box-shadow: 0 0 20px var(--accent-primary); transform: translateY(-1px); }
+        button { font-family: 'Nunito', sans-serif; border: none; cursor: pointer; font-weight: 700; border-radius: 4px; transition: all 0.2s; }
+        button.secondary { background-color: rgba(255,255,255,0.1); color: var(--text-main); padding: 8px 16px; font-size: 13px; }
+        button.secondary:hover { background-color: rgba(255,255,255,0.2); }
+        button.small-btn { padding: 8px 16px; font-size: 13px; background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); }
+        button.small-btn:hover { background-color: var(--danger-color); color: #fff; }
+        
+        .btn-analyze { background-color: var(--accent-primary); color: #000; padding: 12px 30px; font-size: 15px; border-radius: 6px; width: auto; align-self: flex-start; text-transform: uppercase; letter-spacing: 1px;}
+        .btn-analyze:hover { background-color: var(--text-main); color: #000; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .btn-analyze:active { transform: translateY(1px); }
-        .btn-clicked { animation: cyber-glitch 0.3s linear; }
-        @keyframes cyber-glitch { 0% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); background-color: var(--accent-secondary); } 50% { clip-path: polygon(10px 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); } 100% { background-color: var(--accent-primary); } }
 
-        .alert { padding: 10px 15px; margin-top: 20px; font-size: var(--content-font-size); font-weight: bold; display: none; border-left: 3px solid; background-color: rgba(0,0,0,0.5); text-transform: uppercase; }
-        .alert-info { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .alert-success { border-color: var(--success-color); color: var(--success-color); display: none; margin-bottom: 15px;}
+        .alert { padding: 12px 15px; margin-top: 20px; font-size: var(--content-font-size); font-weight: 700; display: none; border-left: 4px solid; background-color: rgba(0,0,0,0.3); border-radius: 4px; }
+        .alert-info { border-color: var(--accent-primary); color: var(--text-main); }
+        .alert-success { border-color: var(--accent-primary); color: var(--accent-primary); margin-bottom: 15px;}
+
+        /* Hostname Indicator */
+        .hostname-indicator {
+            display: none; margin-top: 25px; margin-bottom: -10px; font-size: calc(var(--content-font-size) - 1px); 
+            color: var(--accent-primary); font-weight: 700; background: rgba(0,0,0,0.2); 
+            padding: 8px 15px; border-radius: 6px; border: 1px solid var(--panel-border); border-left: 4px solid var(--accent-primary); width: fit-content;
+        }
 
         /* --- Data Table --- */
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background-color: transparent; }
-        th { background-color: rgba(0, 0, 0, 0.3); font-weight: 600; color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px); text-transform: uppercase; padding: 12px 15px; text-align: left; border-bottom: 2px solid var(--panel-border); }
-        td { padding: 15px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; background-color: rgba(0, 0, 0, 0.1); font-size: var(--content-font-size); }
-        tr { border-left: 2px solid transparent; transition: all 0.2s ease; }
-        tr:hover { border-left: 2px solid var(--accent-primary); background-color: rgba(255,255,255,0.02); }
-        .animated-row { opacity: 0; transform: translateX(-15px); animation: slideRightFade 0.4s forwards; }
-        @keyframes slideRightFade { to { opacity: 1; transform: translateX(0); } }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 25px; }
+        th { background-color: rgba(0, 0, 0, 0.2); font-weight: 700; color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px); text-transform: uppercase; padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--panel-border); }
+        th:first-child { border-top-left-radius: 6px; }
+        th:last-child { border-top-right-radius: 6px; }
+        td { padding: 15px; text-align: left; border-bottom: 1px solid var(--panel-border); vertical-align: top; background-color: rgba(255, 255, 255, 0.01); font-size: var(--content-font-size); }
+        tr:last-child td:first-child { border-bottom-left-radius: 6px; }
+        tr:last-child td:last-child { border-bottom-right-radius: 6px; }
+        tr:hover td { background-color: rgba(255,255,255,0.03); }
 
-        .status-down { color: var(--danger-color); font-weight: bold; }
-        .status-up { color: var(--success-color); font-weight: bold; }
+        .animated-row { opacity: 0; transform: translateY(10px); animation: slideUpFade 0.4s forwards; }
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
 
-        .glow-accent1 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-primary); }
-        .glow-accent2 { color: var(--text-main); text-shadow: 0 0 5px var(--accent-secondary); }
+        /* Typography */
+        .status-down { color: var(--danger-color); font-weight: 700; }
+        .status-up { color: var(--accent-primary); font-weight: 700; }
 
-        ul.flap-list { margin: 0; padding-left: 0; list-style-type: none; font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted); }
+        /* --- Date Collapsible Grouping --- */
+        .date-group { margin-bottom: 12px; background: rgba(0,0,0,0.15); border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; transition: all 0.3s ease; }
+        .date-header { background: rgba(255,255,255,0.03); padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: calc(var(--content-font-size) - 1px); transition: background 0.2s; user-select: none; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;}
+        .date-header:hover { background: rgba(255,255,255,0.06); }
+        .date-chevron { font-size: 10px; transition: transform 0.3s ease; color: var(--accent-primary); }
+        .date-group.collapsed .date-chevron { transform: rotate(-90deg); }
+        
+        .date-group-content { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; }
+        .date-group.collapsed .date-group-content { grid-template-rows: 0fr; }
+        .date-group-content-inner { overflow: hidden; padding: 0 15px; }
+
+        ul.flap-list { margin: 0; padding: 12px 0; list-style-type: none; font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted); }
         ul.flap-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         ul.flap-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        .instance-badge { color: var(--bg-color); background-color: var(--text-muted); padding: 2px 6px; font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; font-weight: bold; display: inline-block; text-transform: uppercase; }
-        .interval-badge { color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); margin-bottom: 6px; padding-left: 8px; border-left: 2px solid var(--accent-secondary); display: inline-block; }
-        .site-badge { font-size: calc(var(--content-font-size) - 2px); padding: 2px 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); margin-right: 6px; color: var(--text-muted); vertical-align: middle; }
+        .instance-badge { background-color: rgba(255,255,255,0.1); color: var(--text-main); padding: 3px 8px; border-radius: 12px; font-size: calc(var(--content-font-size) - 2px); margin-bottom: 8px; font-weight: 700; display: inline-block; text-transform: uppercase;}
+        .interval-badge { color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); font-weight: 600; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid var(--panel-border); display: inline-block; }
+        .site-badge { font-size: calc(var(--content-font-size) - 2px); padding: 3px 6px; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); border-radius: 4px; margin-right: 8px; color: var(--text-muted); vertical-align: middle; font-weight: 700; }
 
         /* --- Summary Boxes --- */
-        .summary-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-top: 25px;
-        }
-        .cid-summary-box {
-            padding: 15px; 
-            background: rgba(0,0,0,0.4); 
-            border: 1px solid var(--panel-border); 
-            display: none;
-            animation: slideRightFade 0.4s forwards;
-        }
-        .cid-summary-title {
-            font-weight: bold; 
-            margin-bottom: 10px; 
-            font-size: calc(var(--content-font-size) + 1px); 
-            text-transform: uppercase;
-        }
-        .cid-summary-content {
-            font-family: monospace; 
-            color: var(--text-main); 
-            font-size: var(--content-font-size); 
-            white-space: pre-wrap; 
-            user-select: all; /* Easy single click to copy */
-        }
+        .summary-wrapper { display: flex; flex-direction: column; gap: 20px; margin-top: 30px; }
+        .report-summary-box { padding: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); border-radius: 6px; display: none; animation: slideUpFade 0.4s forwards; }
+        .report-summary-title { font-weight: 800; margin-bottom: 12px; font-size: calc(var(--content-font-size) + 1px); text-transform: uppercase; }
+        
+        /* HTML Table for Incident Summary Display */
+        .summary-data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .summary-data-table th, .summary-data-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; font-size: var(--content-font-size); }
+        .summary-data-table th { color: var(--text-muted); text-transform: uppercase; font-weight: 800; font-size: calc(var(--content-font-size) - 1px); border-bottom: 1px dashed var(--panel-border); }
+        .summary-data-table td { background-color: transparent; }
     </style>
 </head>
 <body>
@@ -274,55 +288,101 @@
     <div class="container">
         
         <header class="app-header">
-            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="System Settings">⚙️</div>
+            <div class="gear-btn-box" onclick="toggleThemeMenu()" title="Appearance Settings">⚙️</div>
             
             <div id="settingsMenu">
-                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">// UI SCHEMATICS</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 700;">APPEARANCE</div>
                 <div class="theme-option active" onclick="setTheme('default', this)">
-                    <span class="theme-swatch" style="background:#58a6ff;"></span> NOC STANDARD
+                    <span class="theme-swatch" style="background:#35d073;"></span> Professional Mint
+                </div>
+                <div class="theme-option" onclick="setTheme('cyber', this)">
+                    <span class="theme-swatch" style="background:#58a6ff;"></span> Tech Blue
                 </div>
                 <div class="theme-option" onclick="setTheme('industrial', this)">
-                    <span class="theme-swatch" style="background:#f38200;"></span> INDUSTRIAL FLARE
+                    <span class="theme-swatch" style="background:#f38200;"></span> Industrial Orange
                 </div>
-                <div class="theme-option" onclick="setTheme('vapor', this)">
-                    <span class="theme-swatch" style="background:#fd65ff;"></span> VAPOR NETWORKS
+                <div class="theme-option" onclick="setTheme('m1m0', this)">
+                    <span class="theme-swatch" style="background:#37dbce;"></span> M1M0
                 </div>
                 
                 <div class="slider-container">
                     <div class="slider-label">
-                        <span>Text Scale</span>
-                        <span id="textSizeReadout" style="color: var(--accent-primary);">13px</span>
+                        <span>Text Size</span>
+                        <span id="textSizeReadout" style="color: var(--accent-primary);">14px</span>
                     </div>
-                    <input type="range" id="textSizeSlider" min="10" max="18" value="13" oninput="updateTextSize(this.value)">
+                    <input type="range" id="textSizeSlider" min="12" max="18" value="14" oninput="updateTextSize(this.value)">
                 </div>
             </div>
 
-            <div class="app-branding">
-                <span class="brand-text">N0C</span>
-                <span class="brand-highlight">Ø</span>
-                <span class="brand-text">WL</span>
-                <span class="app-subtext">// OVERWATCH LINK-ANALYZER</span>
+            <div style="display: flex; align-items: center; flex-grow: 1;">
+                <div class="app-branding">
+                    <span class="brand-text">N0C</span>
+                    <span class="brand-highlight" style="color: var(--bg-color);">0</span>
+                    <span class="brand-text">WL</span>
+                </div>
+                <div class="app-subtext">// OVERWATCH LINK-ANALYZER</div>
             </div>
+
+            <div class="tz-widget">
+                <button id="fmtToggleBtn" class="fmt-toggle" onclick="toggleTimeFormat()" title="Toggle 12H / 24H Format">[ 24H ]</button>
+                <div id="liveIndicator" class="live-dot pulse" onclick="resetToLiveTime()" title="LIVE CLOCK (Click to resume)"></div>
+                
+                <select id="sourceTzSelector" class="tz-select source-tz" onchange="updateClocks()">
+                    <option value="Local">LOCAL</option>
+                    <option value="UTC">UTC (GMT+0)</option>
+                    <option value="America/New_York">EST (GMT-5)</option>
+                    <option value="America/Bogota">COT (GMT-5)</option>
+                    <option value="America/Los_Angeles">PST (GMT-8)</option>
+                    <option value="Europe/London">GMT (GMT+0)</option>
+                    <option value="Europe/Berlin">CET (GMT+1)</option>
+                    <option value="Europe/Kyiv">EEST (GMT+3)</option>
+                    <option value="Asia/Kolkata">IST (GMT+5:30)</option>
+                    <option value="Asia/Manila">PHT (GMT+8)</option>
+                    <option value="Asia/Tokyo">JST (GMT+9)</option>
+                    <option value="Australia/Sydney">AEST (GMT+10)</option>
+                </select>
+                
+                <span style="opacity: 0.5; margin: 0 2px;">></span>
+                <input type="text" id="localTimeInput" class="tz-time-input" maxlength="11" autocomplete="off" onfocus="setCustomTime()" oninput="updateClocks()">
+                <span style="opacity: 0.3; margin: 0 4px;">|</span>
+                
+                <select id="tzSelector" class="tz-select" onchange="updateClocks()">
+                    <option value="UTC">UTC (GMT+0)</option>
+                    <option value="Local">LOCAL</option>
+                    <option value="America/New_York">EST (GMT-5)</option>
+                    <option value="America/Bogota">COT (GMT-5)</option>
+                    <option value="America/Los_Angeles">PST (GMT-8)</option>
+                    <option value="Europe/London">GMT (GMT+0)</option>
+                    <option value="Europe/Berlin">CET (GMT+1)</option>
+                    <option value="Europe/Kyiv">EEST (GMT+3)</option>
+                    <option value="Asia/Kolkata">IST (GMT+5:30)</option>
+                    <option value="Asia/Manila">PHT (GMT+8)</option>
+                    <option value="Asia/Tokyo">JST (GMT+9)</option>
+                    <option value="Australia/Sydney">AEST (GMT+10)</option>
+                </select>
+                <span id="convertedTimeDisplay">00:00:00</span>
+            </div>
+
         </header>
         
         <div class="db-card">
-            <div class="db-header" onclick="toggleDB()">
-                <span>[+] LOCAL DATA MAPPING PROTOCOL</span>
+            <div class="db-header" id="dbHeader" onclick="toggleDB()">
+                <span>Location & Circuit Database</span>
                 <span class="db-chevron" id="dbChevron">▼</span>
             </div>
             <div class="db-content-wrapper" id="dbContentWrapper">
                 <div class="db-content">
                     <div class="mapping-controls">
                         <p style="margin:0; font-size:calc(var(--content-font-size) - 1px); color:var(--text-muted);">
-                            > Mapping Definition Interface.<br>
-                            > Format: <code>[REGION DC/DIA] - [NICKNAME] - [router_hostname] - [IP] - [ISP/CARRIER] - [CID]</code>
+                            Define your network site mappings below so IP addresses are automatically identified.<br>
+                            Format: <code>[REGION DC/DIA] - [Nickname] - [Router Name] - [IP Address] - [ISP] - [Circuit ID]</code>
                         </p>
                         <textarea id="mappingInput" placeholder="[PH DC] - Manila Core - [PH-NOC-CER02] - [100.64.1.2] - [AT&T] - [abcdefghijhlmnop41]
 [IN DIA] - Mumbai Edge - IN-NOC-IGW2001 - 192.168.10.1 - Singtel - abcdefghijhlmnop42
-UnknownPeer - [10.19.0.4] - Lumen"></textarea>
+UnknownPeer - 10.19.0.4 - Lumen"></textarea>
                         <div class="btn-group" style="margin-bottom: 0;">
-                            <button class="secondary" onclick="saveMappings()">commit_changes</button>
-                            <button class="small-btn" onclick="clearMappings()">flush_database</button>
+                            <button class="secondary" onclick="saveMappings()">Save Mappings</button>
+                            <button class="small-btn" onclick="clearMappings()">Clear Database</button>
                         </div>
                         <div id="mappingAlert" class="alert alert-success"></div>
                     </div>
@@ -331,55 +391,163 @@ UnknownPeer - [10.19.0.4] - Lumen"></textarea>
         </div>
 
         <div class="instructions">
-            > AWAITING BGP SYSLOG STREAM...<br>
-            > REQUIRED INPUTS: <code>sh log | i BGP-5-ADJ</code> AND <code>sh clock</code> (FOR TIME REFERENCE)
+            Paste your network logs below to extract outage data.<br>
+            Note: Ensure your logs include <code>BGP-5-ADJCHANGE</code> events. Include <code>sh clock</code> at the end to automatically calibrate the timeline.
         </div>
 
-        <textarea id="logInput" placeholder="> Input raw syslog output here...
+        <textarea id="logInput" placeholder="> Paste raw logs here...
 PH-PHX-CER1501#sh log | i BGP-5-ADJ
 Apr  5 07:51:12.150: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Down BFD adjacency down
 Apr  5 07:51:20.676: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Up
 PH-PHX-CER1501#sh clock
 16:02:54.588 UTC Sun Apr 5 2026"></textarea>
         
-        <button id="analyzeBtn" class="btn-analyze" onclick="triggerAnalyze()">RUN_ANALYSIS // EXECUTE</button>
+        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
+            <button id="analyzeBtn" class="btn-analyze" onclick="triggerAnalyze()">Analyze Logs</button>
+            
+            <label style="color: var(--text-main); font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--panel-border);">
+                <input type="checkbox" id="filterHoursCheck" onchange="triggerAnalyze()"> 
+                Show last 
+                <input type="number" id="filterHoursInput" value="24" min="1" style="width: 50px; text-align: center; padding: 2px 4px; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); color: var(--accent-primary); border-radius: 4px; font-weight: bold;" onchange="if(document.getElementById('filterHoursCheck').checked) triggerAnalyze()"> 
+                hours
+            </label>
+        </div>
         
-        <div id="timezoneAlert" class="alert alert-info"></div>
+        <div id="timezoneAlert" class="alert alert-info" style="margin-top: 0;"></div>
+        <div id="hostnameIndicator" class="hostname-indicator">🖥️ Target Hostname: <span id="hostnameValue" style="color: var(--text-main);"></span></div>
         <div id="resultsArea"></div>
         
         <div class="summary-wrapper">
-            <div id="incidentSummaryArea" class="cid-summary-box" style="border-left-color: var(--warning-color);">
-                <div class="cid-summary-title" style="color: var(--warning-color);">📊 INCIDENT SUMMARY REPORT (COPY FOR TICKET)</div>
-                <div class="cid-summary-content" id="incidentSummaryContent"></div>
-            </div>
-
-            <div id="cidSummaryArea" class="cid-summary-box" style="border-left-color: var(--accent-primary);">
-                <div class="cid-summary-title" style="color: var(--accent-primary);">📋 AFFECTED CIRCUIT IDs</div>
-                <div class="cid-summary-content" id="cidSummaryContent"></div>
+            <div id="incidentSummaryArea" class="report-summary-box" style="border-left: 3px solid var(--warning-color); position: relative;">
+                <button class="secondary" style="position: absolute; top: 15px; right: 145px; font-size: 11px; padding: 4px 8px; z-index: 10;" onclick="copyData('cidsOnly', this)">Copy CIDs</button>
+                <button class="secondary" style="position: absolute; top: 15px; right: 15px; font-size: 11px; padding: 4px 8px; z-index: 10;" onclick="copyAsImage('incidentSummaryCaptureArea', this)">Copy to clipboard</button>
+                
+                <div id="incidentSummaryCaptureArea" style="padding: 15px; background: var(--panel-bg); border-radius: 6px; margin-top: 10px;">
+                    <div class="report-summary-title" style="color: var(--warning-color);">Incident Summary Report</div>
+                    <div id="summaryHostnameTitle" style="font-weight: 800; color: var(--text-main); margin-bottom: 10px; font-size: var(--content-font-size); display: none;">
+                        <span style="color: var(--text-muted);">TARGET DEVICE:</span> <span id="summaryHostnameValue"></span> <span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px);">facing ⬇️</span>
+                    </div>
+                    <table class="summary-data-table" id="incidentSummaryTable"></table>
+                </div>
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- SEVERITY COLOR SPECTRUM FOR TIMELINE INSTANCES (Dark Blue to Hot Pink) ---
+        // --- DATA STORE FOR CLEAN COPYING ---
+        let copyStore = {
+            cidsOnly: ''
+        };
+
+        // --- SEVERITY COLOR SPECTRUM FOR TIMELINE INSTANCES ---
         const severitySpectrum = [
-            '#327FE3', // Instance 1: Blue
-            '#4573DD', // Instance 2: Blue-Indigo
-            '#546BD8', // Instance 3: Indigo
-            '#6463D1', // Instance 4: Purple-Indigo
-            '#735ECB', // Instance 5: Purple
-            '#8456C2', // Instance 6: Magenta-Purple
-            '#984DB9', // Instance 7: Magenta
-            '#B23DAB', // Instance 8: Dark Pink
-            '#CD2A9D', // Instance 9: Pink
-            '#F20089'  // Instance 10+: Hot Neon Pink
+            '#327FE3', '#4573DD', '#546BD8', '#6463D1', '#735ECB', 
+            '#8456C2', '#984DB9', '#B23DAB', '#CD2A9D', '#F20089'  
         ];
 
         function getSeverityColor(idx) {
             if (idx < 0) return severitySpectrum[0];
             if (idx >= severitySpectrum.length) return severitySpectrum[severitySpectrum.length - 1];
             return severitySpectrum[idx];
+        }
+
+        // --- COPY TEXT LOGIC (For CIDs) ---
+        function copyData(type, btnElement) {
+            const textToCopy = copyStore[type];
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = 'Copied!';
+                setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+            }).catch(err => {
+                console.error("Failed to copy text: ", err);
+            });
+        }
+        
+        // --- COPY HTML AS IMAGE LOGIC ---
+        function copyAsImage(elementId, btnElement) {
+            const originalText = btnElement.innerText;
+            btnElement.innerText = 'Rendering...';
+            const targetEl = document.getElementById(elementId);
+            
+            html2canvas(targetEl, {
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-color'),
+                scale: 2 // Higher resolution for crisp text
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    try {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        navigator.clipboard.write([item]).then(() => {
+                            btnElement.innerText = 'Copied!';
+                            setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+                        }).catch(err => {
+                            console.error("Clipboard API failed: ", err);
+                            btnElement.innerText = 'Failed';
+                            setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+                        });
+                    } catch(e) {
+                        btnElement.innerText = 'Not Supported';
+                        setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+                    }
+                });
+            });
+        }
+
+        // --- TIMEZONE WIDGET LOGIC ---
+        let isLiveTime = true, is24Hour = true;
+        function toggleTimeFormat() { 
+            is24Hour = !is24Hour; 
+            document.getElementById('fmtToggleBtn').innerText = is24Hour ? "[ 24H ]" : "[ 12H ]"; 
+            localStorage.setItem('n0c_owl_tz_24h', is24Hour); 
+            updateClocks(); 
+        }
+        function getTzOffsetDiff(srcTz, tgtTz) { 
+            const now = new Date(); 
+            const getStr = (tz) => tz === 'Local' ? now.toLocaleString('en-US') : now.toLocaleString('en-US', {timeZone: tz}); 
+            return new Date(getStr(tgtTz)).getTime() - new Date(getStr(srcTz)).getTime(); 
+        }
+        function updateClocks() { 
+            const timeInput = document.getElementById('localTimeInput'); 
+            const srcTz = document.getElementById('sourceTzSelector').value, tgtTz = document.getElementById('tzSelector').value; 
+            localStorage.setItem('n0c_owl_tz_src', srcTz); 
+            localStorage.setItem('n0c_owl_tz_tgt', tgtTz); 
+            const formatOpts = { hour12: !is24Hour, hour: '2-digit', minute: '2-digit', second: '2-digit' }; 
+            
+            if (isLiveTime) { 
+                const now = new Date(); 
+                let srcStr = now.toLocaleTimeString('en-US', srcTz === 'Local' ? formatOpts : { ...formatOpts, timeZone: srcTz }); 
+                if(is24Hour && srcStr.startsWith('24:')) srcStr = srcStr.replace('24:', '00:'); 
+                if (document.activeElement !== timeInput) timeInput.value = srcStr; 
+                
+                let tgtStr = now.toLocaleTimeString('en-US', tgtTz === 'Local' ? formatOpts : { ...formatOpts, timeZone: tgtTz }); 
+                if(is24Hour && tgtStr.startsWith('24:')) tgtStr = tgtStr.replace('24:', '00:'); 
+                document.getElementById('convertedTimeDisplay').innerText = tgtStr; 
+            } else { 
+                let t = timeInput.value.trim(); 
+                if (/^\d{3,4}$/.test(t)) t = t.substring(0, t.length - 2) + ':' + t.substring(t.length - 2); 
+                let parsedDate = new Date("1/1/2000 " + t); 
+                if (!isNaN(parsedDate.getTime())) { 
+                    let d = new Date(1970, 0, 1, parsedDate.getHours(), parsedDate.getMinutes(), parsedDate.getSeconds()); 
+                    let tgtStr = new Date(d.getTime() + getTzOffsetDiff(srcTz, tgtTz)).toLocaleTimeString('en-US', formatOpts); 
+                    if(is24Hour && tgtStr.startsWith('24:')) tgtStr = tgtStr.replace('24:', '00:'); 
+                    document.getElementById('convertedTimeDisplay').innerText = tgtStr; 
+                } else {
+                    document.getElementById('convertedTimeDisplay').innerText = "--:--:--"; 
+                }
+            } 
+        }
+        function setCustomTime() { 
+            if (isLiveTime) { 
+                isLiveTime = false; 
+                document.getElementById('liveIndicator').className = 'live-dot paused'; 
+                document.getElementById('localTimeInput').select(); 
+                updateClocks(); 
+            } 
+        }
+        function resetToLiveTime() { 
+            isLiveTime = true; 
+            document.getElementById('liveIndicator').className = 'live-dot pulse'; 
+            updateClocks(); 
         }
 
         // --- TEXT SCALING LOGIC ---
@@ -421,12 +589,12 @@ PH-PHX-CER1501#sh clock
 
         // --- BACKGROUND CANVAS ANIMATION ---
         let particles = [];
-        let canvasColors = ['#58a6ff', '#00e5ff']; 
+        let canvasColors = ['#35d073', '#23934f']; // init
 
         function updateCanvasColors() {
             const style = getComputedStyle(document.body);
-            const pColor = style.getPropertyValue('--accent-primary').trim() || '#58a6ff';
-            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#00e5ff';
+            const pColor = style.getPropertyValue('--accent-primary').trim() || '#35d073';
+            const sColor = style.getPropertyValue('--accent-secondary').trim() || '#23934f';
             canvasColors = [pColor, sColor];
             particles.forEach(p => { p.color = canvasColors[Math.floor(Math.random() * canvasColors.length)]; });
         }
@@ -436,7 +604,7 @@ PH-PHX-CER1501#sh clock
             const ctx = canvas.getContext('2d');
             let mouse = { x: null, y: null };
             
-            const PARTICLE_COUNT = 80;
+            const PARTICLE_COUNT = 70;
             const CONNECT_DISTANCE = 130; 
             const MOUSE_CONNECT_DISTANCE = 200; 
 
@@ -455,8 +623,8 @@ PH-PHX-CER1501#sh clock
                 init() {
                     this.x = Math.random() * canvas.width;
                     this.y = Math.random() * canvas.height;
-                    this.vx = (Math.random() - 0.5) * 0.6;
-                    this.vy = (Math.random() - 0.5) * 0.6;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
                     this.radius = Math.random() * 0.8 + 0.2; 
                     this.color = canvasColors[Math.floor(Math.random() * canvasColors.length)];
                 }
@@ -468,7 +636,6 @@ PH-PHX-CER1501#sh clock
                 draw() {
                     ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                     ctx.fillStyle = this.color; ctx.fill();
-                    ctx.shadowBlur = 3; ctx.shadowColor = this.color;
                 }
             }
 
@@ -478,7 +645,7 @@ PH-PHX-CER1501#sh clock
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 for (let i = 0; i < PARTICLE_COUNT; i++) {
-                    let p1 = particles[i]; p1.update(); ctx.shadowBlur = 0; 
+                    let p1 = particles[i]; p1.update(); 
                     for (let j = i + 1; j < PARTICLE_COUNT; j++) {
                         let p2 = particles[j];
                         let dx = p1.x - p2.x; let dy = p1.y - p2.y;
@@ -487,7 +654,7 @@ PH-PHX-CER1501#sh clock
                             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
                             let opacity = 1 - (dist / CONNECT_DISTANCE);
                             ctx.strokeStyle = p1.color; 
-                            ctx.globalAlpha = opacity * 0.4;
+                            ctx.globalAlpha = opacity * 0.25;
                             ctx.lineWidth = 0.8; 
                             ctx.stroke();
                             ctx.globalAlpha = 1.0; 
@@ -499,8 +666,8 @@ PH-PHX-CER1501#sh clock
                         if (distMouse < MOUSE_CONNECT_DISTANCE) {
                             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(mouse.x, mouse.y);
                             let opacityMouse = 1 - (distMouse / MOUSE_CONNECT_DISTANCE);
-                            ctx.strokeStyle = p1.color; ctx.globalAlpha = opacityMouse * 0.6;
-                            ctx.lineWidth = 1.2; ctx.stroke(); ctx.globalAlpha = 1.0;
+                            ctx.strokeStyle = p1.color; ctx.globalAlpha = opacityMouse * 0.5;
+                            ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1.0;
                         }
                     }
                     p1.draw(); 
@@ -514,15 +681,16 @@ PH-PHX-CER1501#sh clock
         function toggleDB() {
             const wrapper = document.getElementById('dbContentWrapper');
             const chevron = document.getElementById('dbChevron');
+            const header = document.getElementById('dbHeader');
             wrapper.classList.toggle('open');
             chevron.classList.toggle('open');
+            header.classList.toggle('open');
         }
 
         function triggerAnalyze() {
             const btn = document.getElementById('analyzeBtn');
-            btn.classList.remove('btn-clicked');
-            void btn.offsetWidth; 
-            btn.classList.add('btn-clicked');
+            btn.style.transform = 'scale(0.98)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 100);
             setTimeout(parseLogs, 100); 
         }
 
@@ -535,8 +703,9 @@ PH-PHX-CER1501#sh clock
                 document.body.classList.add(`theme-${savedTheme}`);
                 document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
                 const options = document.querySelectorAll('.theme-option');
-                if(savedTheme === 'industrial') options[1].classList.add('active');
-                if(savedTheme === 'vapor') options[2].classList.add('active');
+                if(savedTheme === 'cyber') options[1].classList.add('active');
+                if(savedTheme === 'industrial') options[2].classList.add('active');
+                if(savedTheme === 'm1m0') options[3].classList.add('active');
             }
 
             const savedSize = localStorage.getItem('n0c_owl_text_size');
@@ -544,6 +713,19 @@ PH-PHX-CER1501#sh clock
                 document.getElementById('textSizeSlider').value = savedSize;
                 updateTextSize(savedSize);
             }
+
+            // Load Clock Settings
+            const savedSrcTz = localStorage.getItem('n0c_owl_tz_src');
+            if (savedSrcTz) document.getElementById('sourceTzSelector').value = savedSrcTz;
+            const savedTgtTz = localStorage.getItem('n0c_owl_tz_tgt');
+            if (savedTgtTz) document.getElementById('tzSelector').value = savedTgtTz;
+            const saved24h = localStorage.getItem('n0c_owl_tz_24h');
+            if (saved24h !== null) { 
+                is24Hour = saved24h === 'true'; 
+                document.getElementById('fmtToggleBtn').innerText = is24Hour ? "[ 24H ]" : "[ 12H ]"; 
+            }
+            updateClocks();
+            setInterval(updateClocks, 1000);
 
             try {
                 const saved = localStorage.getItem('bgp_ip_mappings');
@@ -613,19 +795,19 @@ PH-PHX-CER1501#sh clock
                 localStorage.setItem('bgp_ip_mappings', rawText);
                 buildMappingDictionary(rawText);
                 const alertBox = document.getElementById('mappingAlert');
-                alertBox.innerText = "> PROTOCOL: DB_MAPPING_COMMITTED.";
+                alertBox.innerText = "Mappings saved successfully.";
                 alertBox.style.display = "block";
                 setTimeout(() => alertBox.style.display = "none", 3000);
             } catch (e) { alert("Error saving data."); }
         }
 
         function clearMappings() {
-            if(confirm("EXECUTE TOTAL FLUSH OF LOCAL DATABASE?")) {
+            if(confirm("Are you sure you want to clear the entire mapping database?")) {
                 localStorage.removeItem('bgp_ip_mappings');
                 document.getElementById('mappingInput').value = "";
                 localMappings = {};
                 const alertBox = document.getElementById('mappingAlert');
-                alertBox.innerText = "> PROTOCOL: DB_MAPPING_FLUSHED.";
+                alertBox.innerText = "Database cleared.";
                 alertBox.style.display = "block";
                 setTimeout(() => alertBox.style.display = "none", 3000);
             }
@@ -639,25 +821,48 @@ PH-PHX-CER1501#sh clock
             const peers = {};
             let isUTC = false; let logYear = new Date().getFullYear();
             let currentHostname = "Unknown-Router"; 
+            
+            let detectedHostnames = new Set();
+            let globalMaxLogTime = 0;
 
+            // First Pass: Timezone, Year, Hostnames, Max Log Time detection
             lines.forEach(line => {
                 line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
-                if (hostMatch) currentHostname = hostMatch[1];
+                if (hostMatch) {
+                    currentHostname = hostMatch[1];
+                    detectedHostnames.add(currentHostname);
+                }
                 
                 if (line.match(/\d{2}:\d{2}:\d{2}/) && line.match(/\b(20\d{2})\b/)) {
                     const yearMatch = line.match(/\b(20\d{2})\b/);
                     if (yearMatch) logYear = yearMatch[1];
                     if (line.includes('UTC')) isUTC = true;
                 }
+                
+                // Track max time to use as reference for X Hours filter
+                const logMatch = line.match(/(.*?)\s*%BGP-5-ADJCHANGE/i);
+                if (logMatch) {
+                    let timeStr = logMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
+                    let parseStr = timeStr.replace(/\s+/g, ' '); 
+                    if (!/\d{4}/.test(parseStr)) parseStr += ` ${logYear}`;
+                    if (isUTC && !/UTC/.test(parseStr)) parseStr += " UTC";
+                    const dateObj = new Date(parseStr);
+                    if (!isNaN(dateObj) && dateObj.getTime() > globalMaxLogTime) {
+                        globalMaxLogTime = dateObj.getTime();
+                    }
+                }
             });
-
+            
+            let primaryHostname = [...detectedHostnames][0] || "Unknown-Router";
+            
             const alertBox = document.getElementById('timezoneAlert');
             if (isUTC) {
                 alertBox.style.display = 'block';
-                alertBox.innerText = `> UTC CLOCK DETECTED. APPLYING PHT TEMPORAL OFFSET (+8h)...`;
+                alertBox.innerText = `UTC clock detected. Applying PHT (+8h) conversion...`;
             } else { alertBox.style.display = 'none'; }
 
+            // Second pass: Extract Events
             lines.forEach(line => {
                 line = line.trim();
                 const hostMatch = line.match(/^([A-Za-z0-9_-]+)#/);
@@ -686,7 +891,7 @@ PH-PHX-CER1501#sh clock
                     if (eventType === 'Down') {
                         peers[ip].rawDowns++;
                         if (!peers[ip].currentDownTime) {
-                            peers[ip].flapInstances++; peers[ip].currentDownTime = dateObj; peers[ip].currentDownStr = timeStr || "Unknown Time";
+                            peers[ip].currentDownTime = dateObj; peers[ip].currentDownStr = timeStr || "Unknown Time";
                         }
                     } else if (eventType === 'Up') {
                         peers[ip].rawUps++;
@@ -702,7 +907,7 @@ PH-PHX-CER1501#sh clock
                 }
             });
 
-            renderTable(peers, isUTC);
+            renderTable(peers, isUTC, primaryHostname, globalMaxLogTime);
         }
 
         // --- UTILS ---
@@ -732,204 +937,264 @@ PH-PHX-CER1501#sh clock
             return `${mon} ${day} ${hr}:${min}:${sec}.${ms} PHT`;
         }
 
-        function getOrdinal(n) {
-            if (n % 100 >= 11 && n % 100 <= 13) return n + "th";
-            switch (n % 10) { case 1: return n + "st"; case 2: return n + "nd"; case 3: return n + "rd"; default: return n + "th"; }
-        }
-
         // --- RENDER TABLE ---
-        function renderTable(peers, isUTC) {
+        function renderTable(peers, isUTC, primaryHostname, maxLogTime) {
             const resultsArea = document.getElementById('resultsArea');
-            const cidSummaryArea = document.getElementById('cidSummaryArea');
-            const cidSummaryContent = document.getElementById('cidSummaryContent');
-            
             const incidentSummaryArea = document.getElementById('incidentSummaryArea');
-            const incidentSummaryContent = document.getElementById('incidentSummaryContent');
+            const incidentSummaryTable = document.getElementById('incidentSummaryTable');
+            const hostIndicator = document.getElementById('hostnameIndicator');
+            const summaryHostnameTitle = document.getElementById('summaryHostnameTitle');
+            const summaryHostnameValue = document.getElementById('summaryHostnameValue');
             
-            if (Object.keys(peers).length === 0) {
-                resultsArea.innerHTML = '<p style="color: var(--danger-color); margin-top: 20px; font-size: var(--content-font-size);">> ERR: NULL_INPUT_OR_NO_VALID_BGP_DATA.</p>';
-                cidSummaryArea.style.display = 'none';
+            // X Hours Filter Logic
+            const isFilterActive = document.getElementById('filterHoursCheck').checked;
+            const filterHours = parseFloat(document.getElementById('filterHoursInput').value) || 24;
+            const cutoffTime = maxLogTime - (filterHours * 3600000);
+
+            // Clear storage
+            copyStore.cidsOnly = '';
+
+            let hasVisiblePeers = false;
+
+            // Apply filter to peers
+            for (const ip in peers) {
+                let peer = peers[ip];
+                
+                if (isFilterActive) {
+                    let filteredFlaps = [];
+                    peer.flaps.forEach(flap => {
+                        if (flap.upDate.getTime() >= cutoffTime || flap.downDate.getTime() >= cutoffTime) {
+                            filteredFlaps.push(flap);
+                        }
+                    });
+                    peer.flaps = filteredFlaps;
+                }
+                
+                peer.flapInstances = peer.flaps.length + (peer.currentDownTime ? 1 : 0);
+                if (peer.flapInstances > 0) hasVisiblePeers = true;
+            }
+
+            if (!hasVisiblePeers) {
+                let errorMsg = Object.keys(peers).length === 0 
+                    ? '> ERR: NO_VALID_BGP_DATA_FOUND' 
+                    : `> ERR: NO_OUTAGES_IN_LAST_${filterHours}_HOURS`;
+                resultsArea.innerHTML = `<p style="color: var(--danger-color); margin-top: 20px; font-weight: 700; font-size: var(--content-font-size);">${errorMsg}</p>`;
                 incidentSummaryArea.style.display = 'none';
+                hostIndicator.style.display = 'none';
+                summaryHostnameTitle.style.display = 'none';
                 return;
             }
+            
+            hostIndicator.style.display = 'block';
+            document.getElementById('hostnameValue').innerText = primaryHostname;
+            
+            let hostSite = primaryHostname.split('-')[1] || primaryHostname;
+            if(primaryHostname === "Unknown-Router") hostSite = "Unknown";
+            
+            summaryHostnameValue.innerText = hostSite;
+            summaryHostnameTitle.style.display = 'block';
 
             let html = `
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 30%;">TARGET_NODES</th>
-                            <th style="width: 15%;">STATUS_CODE</th>
-                            <th style="width: 55%;">FAULT_LOG_AND_Temporal_DELTA</th>
+                            <th style="width: 30%;">Target Device / IP</th>
+                            <th style="width: 15%;">Current Status</th>
+                            <th style="width: 55%;">Outage Timeline & Duration</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
 
             let rowIndex = 0;
-            let cidSummaryLines = [];
-            let incidentSummaryData = []; // Array to hold objects for the new Incident Summary
+            let incidentSummaryData = []; 
+            let cidCopyList = [];
 
             for (const ip in peers) {
                 const peer = peers[ip];
                 const flapCount = peer.flapInstances;
+                
+                if (flapCount === 0) continue; // Skip peers that were filtered out completely
+                
                 const mapping = localMappings[peer.ip];
                 
                 let primaryNameHtml = peer.ip; 
-                let subDetails = ''; let siteBadge = ''; let glowClass = '';
-                
-                // Track name for summaries
+                let subDetails = ''; let siteBadge = '';
                 let plainNameForSummary = peer.ip;
+                let exactCidNickname = peer.ip;
 
                 if (mapping) {
                     if (mapping.siteCode && mapping.siteType) {
-                        siteBadge = `<span class="site-badge">[${mapping.siteCode} ${mapping.siteType}]</span>`;
-                        if (mapping.siteType === 'DC') {
-                            if (['PH', 'TWN', 'MY'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
-                            else if (['IN'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
-                            else if (['US', 'MX', 'GR'].includes(mapping.siteCode)) glowClass = 'glow-accent1';
-                            else if (['CO'].includes(mapping.siteCode)) glowClass = 'glow-accent2';
-                        }
+                        siteBadge = `<span class="site-badge">${mapping.siteCode} ${mapping.siteType}</span>`;
                     }
 
                     if (mapping.nickname || mapping.realHostname) {
                         let nicknameHtml = mapping.nickname;
-                        plainNameForSummary = (mapping.siteCode && mapping.siteType ? `[${mapping.siteCode} ${mapping.siteType}] ` : '') + (mapping.nickname || mapping.realHostname);
-                        
-                        if (glowClass && nicknameHtml) nicknameHtml = `<span class="${glowClass}">${nicknameHtml}</span>`;
+                        plainNameForSummary = mapping.nickname || mapping.realHostname;
+                        exactCidNickname = plainNameForSummary; 
 
                         if (mapping.nickname && mapping.realHostname) {
-                            primaryNameHtml = `${siteBadge}${nicknameHtml} <br><span style="font-size: var(--content-font-size); color: var(--text-muted); font-weight: normal;">SYS: ${mapping.realHostname}</span>`;
+                            primaryNameHtml = `${siteBadge}<strong>${nicknameHtml}</strong> <br><span style="font-size: calc(var(--content-font-size) - 1px); color: var(--text-muted);">Router: ${mapping.realHostname}</span>`;
                         } else if (mapping.nickname) {
-                            primaryNameHtml = `${siteBadge}${nicknameHtml}`;
+                            primaryNameHtml = `${siteBadge}<strong>${nicknameHtml}</strong>`;
                         } else if (mapping.realHostname) {
-                            primaryNameHtml = `${siteBadge}${mapping.realHostname}`;
+                            primaryNameHtml = `${siteBadge}<strong>${mapping.realHostname}</strong>`;
                         }
 
-                        subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">IP: ${peer.ip}</span>`;
-                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
+                        subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px); font-weight: 600;">IP: ${peer.ip}</span>`;
+                        if (mapping.isp) subDetails += ` | <span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px); font-weight: 600;">ISP: ${mapping.isp}</span>`;
                     } else {
-                        primaryNameHtml = `${siteBadge}${peer.ip}`;
-                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px);">ISP: ${mapping.isp}</span>`;
+                        primaryNameHtml = `${siteBadge}<strong>${peer.ip}</strong>`;
+                        if (mapping.isp) subDetails += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 1px); font-weight: 600;">ISP: ${mapping.isp}</span>`;
                     }
                     
                     if (mapping.cid) {
-                        subDetails += `<br><span style="color: var(--accent-secondary); font-size: calc(var(--content-font-size) - 1px); font-family: monospace;">CID: ${mapping.cid}</span>`;
-                        cidSummaryLines.push(`${mapping.nickname || mapping.realHostname || peer.ip} - ${mapping.cid}`);
+                        subDetails += `<br><span style="color: var(--text-main); font-size: calc(var(--content-font-size) - 1px); font-family: 'Courier New', Courier, monospace;">CID: ${mapping.cid}</span>`;
                     }
+                    
+                    let cleanCid = mapping.cid ? mapping.cid : 'No CID mapped';
+                    cidCopyList.push(`${exactCidNickname} - ${cleanCid}`);
+                    
+                } else {
+                    primaryNameHtml = `<strong>${peer.ip}</strong>`;
+                    cidCopyList.push(`${peer.ip} - No CID mapped`);
                 }
 
-                // --- Overall Flap Count logic with Specific Colors and Glow ---
+                // --- Overall Flap Count logic ---
                 let summaryStyle = '';
                 let statusDisplayHtml = '';
-                let lastFaultTimeStr = 'N/A';
                 let lastFaultDurationStr = 'N/A';
+                let isPeerDown = false;
                 
                 if (peer.currentDownTime) {
-                    // HARD DOWN
-                    lastFaultTimeStr = isUTC ? formatToPHT(peer.currentDownTime) : peer.currentDownStr;
-                    lastFaultDurationStr = 'HARD DOWN (ONGOING)';
+                    lastFaultDurationStr = 'CURRENTLY DOWN';
+                    isPeerDown = true;
 
-                    summaryStyle = 'color: #ff00d0; font-weight: bold; font-size: calc(var(--content-font-size) + 2px); animation: pulse-hard-down 0.5s infinite; display: inline-block;';
-                    statusDisplayHtml = `<span style="${summaryStyle}">⚠️ HARD_DOWN</span>`;
+                    summaryStyle = 'color: #ff00d0; font-weight: 800; font-size: calc(var(--content-font-size) + 2px); animation: pulse-hard-down 0.5s infinite; display: inline-block;';
+                    statusDisplayHtml = `<span style="${summaryStyle}">⚠️ Currently Down</span>`;
                     if (flapCount > 1) {
-                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); display:inline-block; margin-top:2px;">(PREV_FAULTS: ${flapCount - 1})</span>`;
+                        statusDisplayHtml += `<br><span style="color: var(--text-muted); font-size: calc(var(--content-font-size) - 2px); display:inline-block; margin-top:2px;">(Prior Outages: ${flapCount - 1})</span>`;
                     }
                 } else {
-                    const instanceText = flapCount === 1 ? 'FAULT' : 'FAULTS';
+                    const instanceText = flapCount === 1 ? 'Outage' : 'Outages';
                     let color = '';
                     let anim = '';
-                    if (flapCount === 1) {
-                        color = '#8ff046';
-                        anim = 'pulse-fault-1 1.5s infinite alternate';
-                    } else if (flapCount === 2) {
-                        color = '#f0c546';
-                        anim = 'pulse-fault-2 1.2s infinite alternate';
-                    } else {
-                        color = '#ff4a26';
-                        anim = 'pulse-fault-3 0.8s infinite alternate';
-                    }
-                    summaryStyle = `color: ${color}; font-weight: bold; font-size: calc(var(--content-font-size) + 1px); animation: ${anim}; display: inline-block;`;
+                    if (flapCount === 1) { color = '#8ff046'; anim = 'pulse-fault-1 1.5s infinite alternate'; } 
+                    else if (flapCount === 2) { color = '#f0c546'; anim = 'pulse-fault-2 1.2s infinite alternate'; } 
+                    else { color = '#ff4a26'; anim = 'pulse-fault-3 0.8s infinite alternate'; }
+                    
+                    summaryStyle = `color: ${color}; font-weight: 800; font-size: calc(var(--content-font-size) + 1px); animation: ${anim}; display: inline-block;`;
                     statusDisplayHtml = `<span style="${summaryStyle}">${flapCount} ${instanceText}</span>`;
 
                     if (peer.flaps.length > 0) {
                         let lastFlap = peer.flaps[peer.flaps.length - 1];
-                        lastFaultTimeStr = isUTC ? formatToPHT(lastFlap.downDate) : lastFlap.downStr;
-                        lastFaultDurationStr = `RECOVERED (Outage: ${formatDuration(lastFlap.duration)})`;
+                        lastFaultDurationStr = `Recovered (Duration: ${formatDuration(lastFlap.duration)})`;
                     }
+                    isPeerDown = false;
                 }
 
-                // Push to Incident Summary Data Array
                 incidentSummaryData.push({
                     name: plainNameForSummary,
+                    cid: mapping ? mapping.cid || 'N/A' : 'N/A',
                     flaps: flapCount,
-                    lastTime: lastFaultTimeStr,
-                    duration: lastFaultDurationStr
+                    duration: lastFaultDurationStr,
+                    isDown: isPeerDown
                 });
 
-                let timelineHtml = '<ul class="flap-list">';
-                peer.flaps.forEach((flap, idx) => {
-                    const displayTime = isUTC ? formatToPHT(flap.downDate) : flap.downStr;
-                    const displayUpTime = isUTC ? formatToPHT(flap.upDate) : flap.upStr;
-                    
-                    const incidentColor = getSeverityColor(idx);
-
-                    let intervalHtml = '';
-                    if (idx > 0) {
-                        const prevUpDate = peer.flaps[idx - 1].upDate;
-                        const intervalMs = flap.downDate.getTime() - prevUpDate.getTime();
-                        intervalHtml = `
-                            <div class="interval-badge">
-                                UPTIME_DELTA: <span style="color: var(--warning-color);">${formatDuration(intervalMs)}</span>
-                            </div><br>`;
-                    }
-
-                    timelineHtml += `
-                        <li>
-                            ${intervalHtml}
-                            <div class="instance-badge" style="background-color: ${incidentColor}; color: #ffffff; border: 1px solid ${incidentColor};">INCIDENT_${getOrdinal(idx + 1)}</div><br>
-                            <span class="status-down" style="color: ${incidentColor};">DN_EVENT:</span> ${displayTime} <br>
-                            <span class="status-up">UP_EVENT:</span> ${displayUpTime} <br>
-                            <span style="color:var(--text-muted);">OUTAGE_DURATION: <strong style="color:var(--text-main);">${formatDuration(flap.duration)}</strong></span>
-                        </li>`;
-                });
-
+                let allEvents = [...peer.flaps];
                 if (peer.currentDownTime) {
-                    const displayTime = isUTC ? formatToPHT(peer.currentDownTime) : peer.currentDownStr;
-                    const activeIncidentColor = getSeverityColor(peer.flaps.length);
-                    
-                    let intervalHtml = '';
-                    if (peer.flaps.length > 0) {
-                        const prevUpDate = peer.flaps[peer.flaps.length - 1].upDate;
-                        const intervalMs = peer.currentDownTime.getTime() - prevUpDate.getTime();
-                        intervalHtml = `
-                            <div class="interval-badge">
-                                UPTIME_DELTA: <span style="color: var(--warning-color);">${formatDuration(intervalMs)}</span>
-                            </div><br>`;
-                    }
+                    allEvents.push({
+                        isCurrentDown: true,
+                        downDate: peer.currentDownTime,
+                        downStr: peer.currentDownStr
+                    });
+                }
 
-                    timelineHtml += `
-                        <li>
-                            ${intervalHtml}
-                            <div class="instance-badge" style="background-color: transparent; color: ${activeIncidentColor}; border: 1px solid ${activeIncidentColor};">INCIDENT_${getOrdinal(peer.flaps.length + 1)} (ACTIVE)</div><br>
-                            <span class="status-down" style="color: ${activeIncidentColor};">DN_EVENT:</span> ${displayTime} <br>
-                            > <em>AWAITING UPSTREAM RECOVERY LOG...</em>
-                        </li>`;
+                let timelineHtml = '';
+                let currentDateStr = '';
+                let isFirstDate = true;
+                let dailyOutageCount = 1; // Counter resets per date
+
+                if (allEvents.length === 0) {
+                    timelineHtml = `<em>Error: Recovery log detected without a matching down log.</em>`;
+                } else {
+                    allEvents.forEach((event, idx) => {
+                        let flapDateObj = isUTC ? new Date(event.downDate.getTime() + (8 * 60 * 60 * 1000)) : event.downDate;
+                        let dateString = "Unknown Date";
+                        if (!isNaN(flapDateObj)) {
+                            dateString = flapDateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                        }
+
+                        if (dateString !== currentDateStr) {
+                            if (!isFirstDate) {
+                                timelineHtml += `</ul></div></div></div>`; // close previous date group
+                            }
+                            
+                            dailyOutageCount = 1; // Reset counter for the new date
+                            
+                            // Open new date group (Collapsed by Default)
+                            timelineHtml += `
+                            <div class="date-group collapsed">
+                                <div class="date-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                                    <span>📅 ${dateString}</span>
+                                    <span class="date-chevron">▼</span>
+                                </div>
+                                <div class="date-group-content">
+                                    <div class="date-group-content-inner">
+                                        <ul class="flap-list">
+                            `;
+                            currentDateStr = dateString;
+                            isFirstDate = false;
+                        }
+
+                        let displayTime = isUTC ? formatToPHT(event.downDate) : event.downStr;
+                        
+                        let intervalHtml = '';
+                        if (idx > 0) {
+                            const prevUpDate = allEvents[idx - 1].upDate; 
+                            if (prevUpDate) {
+                                const intervalMs = event.downDate.getTime() - prevUpDate.getTime();
+                                intervalHtml = `
+                                    <div class="interval-badge">
+                                        Time diff since last outage: <span style="color: var(--text-main); font-weight: 700;">${formatDuration(intervalMs)}</span>
+                                    </div><br>`;
+                            }
+                        }
+
+                        if (event.isCurrentDown) {
+                            timelineHtml += `
+                                <li>
+                                    ${intervalHtml}
+                                    <div class="instance-badge" style="background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color);">Outage #${dailyOutageCount++} (ACTIVE)</div><br>
+                                    <span class="status-down">Down:</span> ${displayTime} <br>
+                                    <em>Awaiting recovery log...</em>
+                                </li>`;
+                        } else {
+                            const displayUpTime = isUTC ? formatToPHT(event.upDate) : event.upStr;
+                            const incidentColor = getSeverityColor(dailyOutageCount - 1);
+                            timelineHtml += `
+                                <li>
+                                    ${intervalHtml}
+                                    <div class="instance-badge" style="background-color: ${incidentColor}; color: #ffffff; border: 1px solid ${incidentColor};">Outage #${dailyOutageCount++}</div><br>
+                                    <span class="status-down">Down:</span> ${displayTime} <br>
+                                    <span class="status-up">Recovered:</span> ${displayUpTime} <br>
+                                    <span style="color:var(--text-muted); font-weight: 600;">Duration: <strong style="color:var(--text-main); font-weight: 800;">${formatDuration(event.duration)}</strong></span>
+                                </li>`;
+                        }
+                    });
+                    timelineHtml += `</ul></div></div></div>`; // close the last date group
                 }
-                if (peer.flaps.length === 0 && !peer.currentDownTime) {
-                    timelineHtml += `<li><em>> ERR: INCOMPLETE_DATASET. UP LOGS DETECTED WITHOUT PRECEDING DOWN LOGS. Duration cannot be calculated.</em></li>`;
-                }
-                timelineHtml += '</ul>';
 
                 html += `
                     <tr class="animated-row" style="animation-delay: ${rowIndex * 0.1}s">
                         <td>
-                            <span style="font-size: calc(var(--content-font-size) + 2px); font-weight: bold; color: var(--accent-primary); line-height: 1.4;">${primaryNameHtml}</span>
+                            <span style="font-size: calc(var(--content-font-size) + 1px); line-height: 1.4; color: var(--accent-primary);">${primaryNameHtml}</span>
                             ${subDetails}
                         </td>
                         <td>
                             ${statusDisplayHtml}<br>
-                            <span style="color:var(--text-muted); font-size:calc(var(--content-font-size) - 2px); display:inline-block; margin-top:4px;">
-                                (RAW_METRICS: ${peer.rawDowns} DN, ${peer.rawUps} UP)
+                            <span style="color:var(--text-muted); font-size:calc(var(--content-font-size) - 2px); font-weight: 600; display:inline-block; margin-top:6px;">
+                                (Total Raw Logs: ${peer.rawDowns} Down, ${peer.rawUps} Up)
                             </span>
                         </td>
                         <td>${timelineHtml}</td>
@@ -941,35 +1206,40 @@ PH-PHX-CER1501#sh clock
             html += `</tbody></table>`;
             resultsArea.innerHTML = html;
 
-            // --- Populate Incident Summary Report ---
+            // --- Populate CIDs Only Buffer ---
+            copyStore.cidsOnly = cidCopyList.join('\n');
+
+            // --- Populate Incident Summary HTML Table ---
             if (incidentSummaryData.length > 0) {
-                // Determine column widths for perfect monospace alignment
-                let maxNameLen = Math.max(...incidentSummaryData.map(d => d.name.length), 22);
-                let lines = [];
+                let tableHtml = `
+                    <thead>
+                        <tr>
+                            <th style="width:40%;">SITE/PEER NAME</th>
+                            <th style="width:15%;">OUTAGES</th>
+                            <th style="width:45%;">CURRENT STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
                 
-                // Header
-                lines.push(`SITE / PEER`.padEnd(maxNameLen) + ` | FAULTS | LAST FAULT DETECTED`.padEnd(34) + ` | STATUS & OUTAGE_INTERVAL`);
-                lines.push('-'.repeat(maxNameLen + 65));
-                
-                // Rows
                 incidentSummaryData.forEach(d => {
-                    let flapStr = `${d.flaps}`.padEnd(6);
-                    lines.push(`${d.name.padEnd(maxNameLen)} | ${flapStr} | ${d.lastTime.padEnd(31)} | ${d.duration}`);
+                    let statusColor = d.isDown ? 'var(--danger-color)' : 'var(--success-color)'; 
+                    let cidHtml = d.cid !== 'N/A' ? `<br><span style="font-family: 'Courier New', Courier, monospace; font-size: 11px; color: var(--text-muted);">CID: ${d.cid}</span>` : '';
+                    
+                    tableHtml += `
+                        <tr>
+                            <td><strong style="font-size: 13px;">${d.name}</strong>${cidHtml}</td>
+                            <td style="font-weight: 600;">${d.flaps}</td>
+                            <td style="color: ${statusColor}; font-weight: 700;">${d.duration}</td>
+                        </tr>
+                    `;
                 });
 
-                incidentSummaryContent.innerText = lines.join('\n');
+                tableHtml += `</tbody>`;
+                incidentSummaryTable.innerHTML = tableHtml;
                 incidentSummaryArea.style.display = 'block';
             } else {
                 incidentSummaryArea.style.display = 'none';
-            }
-
-            // --- Populate CID Summary Area ---
-            if (cidSummaryLines.length > 0) {
-                cidSummaryContent.innerText = cidSummaryLines.join('\n');
-                cidSummaryArea.style.display = 'block';
-            } else {
-                cidSummaryArea.style.display = 'none';
-                cidSummaryContent.innerText = '';
             }
         }
     </script>
