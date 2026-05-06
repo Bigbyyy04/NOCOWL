@@ -199,6 +199,7 @@
         /* --- Inputs --- */
         .instructions { background-color: rgba(255,255,255,0.02); border-radius: 6px; padding: 15px; border-left: 4px solid var(--accent-primary); margin-bottom: 20px; font-size: var(--content-font-size); font-weight: 600; line-height: 1.6; color: var(--text-muted); }
         
+        /* Terminal Monospace styling specifically for code elements and Textareas */
         code { font-family: 'Courier New', Courier, monospace; background: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 4px; }
         
         textarea { 
@@ -419,6 +420,7 @@ PH-PHX-CER1501#sh clock
         
         <div class="summary-wrapper">
             <div id="incidentSummaryArea" class="report-summary-box" style="border-left: 3px solid var(--warning-color); position: relative;">
+                <button class="secondary" style="position: absolute; top: 15px; right: 235px; font-size: 11px; padding: 4px 8px; z-index: 10;" onclick="copyData('instancesOnly', this)">Copy Instances</button>
                 <button class="secondary" style="position: absolute; top: 15px; right: 145px; font-size: 11px; padding: 4px 8px; z-index: 10;" onclick="copyData('cidsOnly', this)">Copy CIDs</button>
                 <button class="secondary" style="position: absolute; top: 15px; right: 15px; font-size: 11px; padding: 4px 8px; z-index: 10;" onclick="copyAsImage('incidentSummaryCaptureArea', this)">Copy to clipboard</button>
                 
@@ -437,7 +439,8 @@ PH-PHX-CER1501#sh clock
     <script>
         // --- DATA STORE FOR CLEAN COPYING ---
         let copyStore = {
-            cidsOnly: ''
+            cidsOnly: '',
+            instancesOnly: ''
         };
 
         // --- SEVERITY COLOR SPECTRUM FOR TIMELINE INSTANCES ---
@@ -452,7 +455,7 @@ PH-PHX-CER1501#sh clock
             return severitySpectrum[idx];
         }
 
-        // --- COPY TEXT LOGIC (For CIDs) ---
+        // --- COPY TEXT LOGIC (For CIDs & Instances) ---
         function copyData(type, btnElement) {
             const textToCopy = copyStore[type];
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -937,6 +940,11 @@ PH-PHX-CER1501#sh clock
             return `${mon} ${day} ${hr}:${min}:${sec}.${ms} PHT`;
         }
 
+        function getOrdinal(n) {
+            if (n % 100 >= 11 && n % 100 <= 13) return n + "th";
+            switch (n % 10) { case 1: return n + "st"; case 2: return n + "nd"; case 3: return n + "rd"; default: return n + "th"; }
+        }
+
         // --- RENDER TABLE ---
         function renderTable(peers, isUTC, primaryHostname, maxLogTime) {
             const resultsArea = document.getElementById('resultsArea');
@@ -953,6 +961,7 @@ PH-PHX-CER1501#sh clock
 
             // Clear storage
             copyStore.cidsOnly = '';
+            copyStore.instancesOnly = '';
 
             let hasVisiblePeers = false;
 
@@ -1222,6 +1231,10 @@ PH-PHX-CER1501#sh clock
                     <tbody>
                 `;
                 
+                let instanceLines = [];
+                instanceLines.push("Number of Instances:");
+                instanceLines.push(`${hostSite} Facing\n`);
+
                 incidentSummaryData.forEach(d => {
                     let statusColor = d.isDown ? 'var(--danger-color)' : 'var(--success-color)'; 
                     let cidHtml = d.cid !== 'N/A' ? `<br><span style="font-family: 'Courier New', Courier, monospace; font-size: 11px; color: var(--text-muted);">CID: ${d.cid}</span>` : '';
@@ -1233,11 +1246,16 @@ PH-PHX-CER1501#sh clock
                             <td style="color: ${statusColor}; font-weight: 700;">${d.duration}</td>
                         </tr>
                     `;
+                    
+                    instanceLines.push(`${d.name} - ${d.flaps}x`);
                 });
 
                 tableHtml += `</tbody>`;
                 incidentSummaryTable.innerHTML = tableHtml;
                 incidentSummaryArea.style.display = 'block';
+                
+                // Store formatted instances only
+                copyStore.instancesOnly = instanceLines.join('\n');
             } else {
                 incidentSummaryArea.style.display = 'none';
             }
