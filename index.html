@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🦉NOCOWL</title>
+    <title>NOCOWL</title>
     
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🦉%3C/text%3E%3C/svg%3E">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -247,8 +249,8 @@
         @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
 
         /* Typography */
-        .status-down { color: var(--danger-color); }
-        .status-up { color: var(--accent-primary); }
+        .status-down { color: var(--danger-color); font-weight: 700; }
+        .status-up { color: var(--accent-primary); font-weight: 700; }
 
         /* --- Timeline Flex Alignment --- */
         .timeline-metric { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
@@ -743,7 +745,6 @@ PH-PHX-CER1501#sh clock
             } catch (e) { console.error("Local storage is disabled."); }
         };
 
-        // Omnidirectional Database Parser Engine
         function buildMappingDictionary(rawText) {
             localMappings = {};
             const lines = rawText.split('\n');
@@ -776,7 +777,6 @@ PH-PHX-CER1501#sh clock
                     let realHostname = '';
                     let nickname = '';
 
-                    // Hunt for variables intelligently based on remaining tokens
                     if (tokens.length >= 4) {
                         cid = tokens.pop();
                         isp = tokens.pop();
@@ -1213,11 +1213,12 @@ PH-PHX-CER1501#sh clock
 
                         if (dateString !== currentDateStr) {
                             if (!isFirstDate) {
-                                timelineHtml += `</ul></div></div></div>`; 
+                                timelineHtml += `</ul></div></div></div>`; // close previous date group
                             }
                             
-                            dailyOutageCount = 1; 
+                            dailyOutageCount = 1; // Reset counter for the new date
                             
+                            // Open new date group (Collapsed by Default)
                             timelineHtml += `
                             <div class="date-group collapsed">
                                 <div class="date-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -1234,7 +1235,6 @@ PH-PHX-CER1501#sh clock
 
                         let displayTime = event.downDate ? (isUTC ? formatToPHT(event.downDate) : event.downStr) : "<span style='color: var(--warning-color);'>Prior to log buffer</span>";
                         let displayUpTime = event.upDate ? (isUTC ? formatToPHT(event.upDate) : event.upStr) : "N/A";
-                        let durationText = event.duration === -1 ? 'Unknown (Missing Down Log)' : formatDuration(event.duration);
                         
                         let intervalHtml = '';
                         if (idx > 0) {
@@ -1278,12 +1278,12 @@ PH-PHX-CER1501#sh clock
                                     </div>
                                     <div class="timeline-metric">
                                         <span class="timeline-label" style="color:var(--text-muted);">Duration:</span>
-                                        <span class="timeline-val"><strong style="color:var(--text-main); font-weight: 800;">${durationText}</strong></span>
+                                        <span class="timeline-val"><strong style="color:var(--text-main); font-weight: 800;">${event.duration === -1 ? 'Unknown (Missing Down Log)' : formatDuration(event.duration)}</strong></span>
                                     </div>
                                 </li>`;
                         }
                     });
-                    timelineHtml += `</ul></div></div></div>`; 
+                    timelineHtml += `</ul></div></div></div>`; // close the last date group
                 }
 
                 html += `
