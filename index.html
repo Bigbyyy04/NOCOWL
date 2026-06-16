@@ -382,8 +382,8 @@
                             Define your network site mappings below so IP addresses/SLAs are automatically identified.<br>
                             Format: <code>[REGION DC/DIA] - [Nickname] - [Router Name] - [IP/SLA] - [ISP] - [Circuit ID]</code>
                         </p>
-                        <textarea id="mappingInput" placeholder="[PH DC] - Manila Core - [PH-NOC-CER02] - [100.64.1.2] - [AT&T] - [abcdefghijhlmnop41]
-[IN DIA] - Mumbai Edge - IN-NOC-IGW2001 - SLA 71 - Singtel - abcdefghijhlmnop42
+                        <textarea id="mappingInput" placeholder="[PH DC] - Manila Core - [PH-ABS-CER01] - [100.64.1.2] - [AT&T] - [abcdefghijhlmnop41]
+[IN DIA] - Mumbai Edge - IN-ABC-CGW01 - SLA 71 - Singtel - abcdefghijhlmnop42
 UnknownPeer - 10.19.0.4 - Lumen"></textarea>
                         <div class="btn-group" style="margin-bottom: 0;">
                             <button class="secondary" onclick="saveMappings()">Save Mappings</button>
@@ -401,15 +401,15 @@ UnknownPeer - 10.19.0.4 - Lumen"></textarea>
         </div>
 
         <textarea id="logInput" placeholder="> Paste raw logs here...
-PH-PHX-CER1501#sh log | i BGP-5-ADJ
+PH-ABS-CER01#sh log | i BGP-5-ADJ
 Apr  5 07:51:12.150: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Down BFD adjacency down
 Apr  5 07:51:20.676: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Up
 
-PH-FCN-CGW02#sh log | i ip sla
+PH-ABC-CGW01#sh log | i ip sla
 Jun 16 14:50:33.215 UTC: %TRACK-6-STATE: 71 ip sla 71 reachability Up -> Down
 Jun 16 14:50:38.215 UTC: %TRACK-6-STATE: 71 ip sla 71 reachability Down -> Up
 
-PH-PHX-CER1501#sh clock
+PH-ABS-CER01#sh clock
 16:02:54.588 UTC Sun Apr 5 2026"></textarea>
         
         <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
@@ -1225,11 +1225,12 @@ PH-PHX-CER1501#sh clock
 
                         if (dateString !== currentDateStr) {
                             if (!isFirstDate) {
-                                timelineHtml += `</ul></div></div></div>`; 
+                                timelineHtml += `</ul></div></div></div>`; // close previous date group
                             }
                             
-                            dailyOutageCount = 1; 
+                            dailyOutageCount = 1; // Reset counter for the new date
                             
+                            // Open new date group (Collapsed by Default)
                             timelineHtml += `
                             <div class="date-group collapsed">
                                 <div class="date-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -1295,7 +1296,7 @@ PH-PHX-CER1501#sh clock
                                 </li>`;
                         }
                     });
-                    timelineHtml += `</ul></div></div></div>`; 
+                    timelineHtml += `</ul></div></div></div>`; // close the last date group
                 }
 
                 html += `
