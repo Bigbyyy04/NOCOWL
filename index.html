@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOCOWL</title>
+    <title>🦉NOCOWL</title>
     
-    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🦉%3C/text%3E%3C/svg%3E">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -381,11 +379,11 @@
                 <div class="db-content">
                     <div class="mapping-controls">
                         <p style="margin:0; font-size:calc(var(--content-font-size) - 1px); color:var(--text-muted);">
-                            Define your network site mappings below so IP addresses are automatically identified.<br>
-                            Format: <code>[REGION DC/DIA] - [Nickname] - [Router Name] - [IP Address] - [ISP] - [Circuit ID]</code>
+                            Define your network site mappings below so IP addresses/SLAs are automatically identified.<br>
+                            Format: <code>[REGION DC/DIA] - [Nickname] - [Router Name] - [IP/SLA] - [ISP] - [Circuit ID]</code>
                         </p>
                         <textarea id="mappingInput" placeholder="[PH DC] - Manila Core - [PH-NOC-CER02] - [100.64.1.2] - [AT&T] - [abcdefghijhlmnop41]
-[IN DIA] - Mumbai Edge - IN-NOC-IGW2001 - 192.168.10.1 - Singtel - abcdefghijhlmnop42
+[IN DIA] - Mumbai Edge - IN-NOC-IGW2001 - SLA 71 - Singtel - abcdefghijhlmnop42
 UnknownPeer - 10.19.0.4 - Lumen"></textarea>
                         <div class="btn-group" style="margin-bottom: 0;">
                             <button class="secondary" onclick="saveMappings()">Save Mappings</button>
@@ -399,13 +397,18 @@ UnknownPeer - 10.19.0.4 - Lumen"></textarea>
 
         <div class="instructions">
             Paste your network logs below to extract outage data.<br>
-            Note: Ensure your logs include <code>BGP-5-ADJCHANGE</code> events. Include <code>sh clock</code> at the end to automatically calibrate the timeline.
+            Note: Ensure your logs include <code>BGP-5-ADJCHANGE</code> or <code>%TRACK-6-STATE</code> events. Include <code>sh clock</code> at the end to automatically calibrate the timeline.
         </div>
 
         <textarea id="logInput" placeholder="> Paste raw logs here...
 PH-PHX-CER1501#sh log | i BGP-5-ADJ
 Apr  5 07:51:12.150: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Down BFD adjacency down
 Apr  5 07:51:20.676: %BGP-5-ADJCHANGE: neighbor 100.64.1.2 Up
+
+PH-FCN-CGW02#sh log | i ip sla
+Jun 16 14:50:33.215 UTC: %TRACK-6-STATE: 71 ip sla 71 reachability Up -> Down
+Jun 16 14:50:38.215 UTC: %TRACK-6-STATE: 71 ip sla 71 reachability Down -> Up
+
 PH-PHX-CER1501#sh clock
 16:02:54.588 UTC Sun Apr 5 2026"></textarea>
         
@@ -421,7 +424,7 @@ PH-PHX-CER1501#sh clock
         </div>
         
         <div id="timezoneAlert" class="alert alert-info" style="margin-top: 0;"></div>
-        <div id="hostnameIndicator" class="hostname-indicator">🖥️ Target Hostname: <span id="hostnameValue" style="color: var(--accent-primary);"></span></div>
+        <div id="hostnameIndicator" class="hostname-indicator">🖥️ Target Hostname: <span id="hostnameValue" style="color: var(--text-main);"></span></div>
         <div id="resultsArea"></div>
         
         <div class="summary-wrapper">
@@ -745,10 +748,11 @@ PH-PHX-CER1501#sh clock
             } catch (e) { console.error("Local storage is disabled."); }
         };
 
+        // Omnidirectional Database Parser Engine
         function buildMappingDictionary(rawText) {
             localMappings = {};
             const lines = rawText.split('\n');
-            const ipRegex = /\b(\d{1,3}(?:\.\d{1,3}){3})\b/;
+            const ipRegex = /\b(\d{1,3}(?:\.\d{1,3}){3})\b|\bSLA\s+\d+\b/i;
             
             lines.forEach(line => {
                 let cleanLine = line.trim();
@@ -756,7 +760,10 @@ PH-PHX-CER1501#sh clock
 
                 const ipMatch = cleanLine.match(ipRegex);
                 if (ipMatch) {
-                    const ip = ipMatch[1];
+                    let ip = ipMatch[0];
+                    if (/^SLA/i.test(ip)) {
+                        ip = "SLA " + ip.match(/\d+/)[0]; 
+                    }
                     
                     let siteCode = null; let siteType = null;
                     const siteMatch = cleanLine.match(/^\[([A-Z]+)\s+(DC|DIA)\]/i);
@@ -770,20 +777,21 @@ PH-PHX-CER1501#sh clock
                     cleanLine = cleanLine.replace(/[\[\]]/g, '').trim();
 
                     let tokens = cleanLine.split(/\s+-\s+/).map(t => t.trim()).filter(t => t);
-                    tokens = tokens.filter(t => t !== ip);
+                    
+                    tokens = tokens.filter(t => t.replace(/\s+/g,'').toLowerCase() !== ip.replace(/\s+/g,'').toLowerCase());
                     
                     let cid = '';
                     let isp = '';
                     let realHostname = '';
                     let nickname = '';
 
+                    // Hunt for variables intelligently based on remaining tokens
                     if (tokens.length >= 4) {
                         cid = tokens.pop();
                         isp = tokens.pop();
                         realHostname = tokens.pop();
                         nickname = tokens.join(' - ');
                     } else if (tokens.length === 3) {
-                        // Check if the middle token looks like a router hostname (e.g. contains dashes/numbers)
                         if (/^[A-Za-z0-9_-]+$/.test(tokens[1]) && tokens[1].includes('-')) {
                             cid = tokens[2];
                             realHostname = tokens[1];
@@ -795,7 +803,6 @@ PH-PHX-CER1501#sh clock
                             nickname = realHostname; // fallback
                         }
                     } else if (tokens.length === 2) {
-                        // Check if token 0 is router hostname
                         if (tokens[0].includes('-') && !tokens[0].includes(' ')) {
                             realHostname = tokens[0];
                             cid = tokens[1];
@@ -811,14 +818,12 @@ PH-PHX-CER1501#sh clock
                     tokens.forEach(tok => {
                         if (tok.startsWith('MC') || tok.includes('/MC')) {
                             cid = tok;
-                        } else if (tok.includes('-CER') || tok.includes('-ACC') || tok.includes('-IGW') || tok.includes('-AS')) {
+                        } else if (tok.includes('-CER') || tok.includes('-ACC') || tok.includes('-IGW') || tok.includes('-AS') || tok.includes('-CGW')) {
                             realHostname = tok;
                         }
                     });
 
-                    // Ensure mappings hold correct structural references
                     if (nickname || realHostname || isp || siteCode || cid) {
-                        // If nickname was missing but realHostname found, mirror it for safety
                         localMappings[ip] = { 
                             siteCode, 
                             siteType, 
@@ -856,7 +861,7 @@ PH-PHX-CER1501#sh clock
             }
         }
 
-        // --- BGP PARSER LOGIC ---
+        // --- BGP / SLA PARSER LOGIC ---
         function parseLogs() {
             const rawText = document.getElementById('logInput').value;
             const normalizedText = rawText.replace(/[\u00A0\u1680\u2000-\u200A\u2028\u202F\u205F\u3000]/g, ' ');
@@ -883,8 +888,7 @@ PH-PHX-CER1501#sh clock
                     if (line.includes('UTC')) isUTC = true;
                 }
                 
-                // Track max time to use as reference for X Hours filter
-                const logMatch = line.match(/(.*?)\s*%BGP-5-ADJCHANGE/i);
+                const logMatch = line.match(/(.*?)\s*(?:%BGP-5-ADJCHANGE|%TRACK-6-STATE)/i);
                 if (logMatch) {
                     let timeStr = logMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
                     let parseStr = timeStr.replace(/\s+/g, ' '); 
@@ -914,13 +918,22 @@ PH-PHX-CER1501#sh clock
                     line = line.substring(hostMatch[0].length).trim();
                 }
 
-                const logMatch = line.match(/(.*?)\s*%BGP-5-ADJCHANGE:\s*neighbor\s+(\d{1,3}(?:\.\d{1,3}){3}).*?\b(Down|Up)\b/i);
+                const bgpMatch = line.match(/(.*?)\s*%BGP-5-ADJCHANGE:\s*neighbor\s+(\d{1,3}(?:\.\d{1,3}){3}).*?\b(Down|Up)\b/i);
+                const slaMatch = line.match(/(.*?)\s*%TRACK-6-STATE:\s*\d+\s+ip\s+sla\s+(\d+)\s+reachability\s+(Up|Down)\s*->\s*(Down|Up)/i);
+
+                let timeStr = null, ip = null, eventType = null;
                 
-                if (logMatch) {
-                    let timeStr = logMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
-                    const ip = logMatch[2]; 
-                    const eventType = logMatch[3].charAt(0).toUpperCase() + logMatch[3].slice(1).toLowerCase(); 
-                    
+                if (bgpMatch) {
+                    timeStr = bgpMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
+                    ip = bgpMatch[2]; 
+                    eventType = bgpMatch[3].charAt(0).toUpperCase() + bgpMatch[3].slice(1).toLowerCase(); 
+                } else if (slaMatch) {
+                    timeStr = slaMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim();
+                    ip = "SLA " + slaMatch[2];
+                    eventType = slaMatch[4].charAt(0).toUpperCase() + slaMatch[4].slice(1).toLowerCase(); 
+                }
+
+                if (timeStr && ip && eventType) {
                     let parseStr = timeStr.replace(/\s+/g, ' '); 
                     if (!/\d{4}/.test(parseStr)) parseStr += ` ${logYear}`;
                     if (isUTC && !/UTC/.test(parseStr)) parseStr += " UTC";
@@ -946,7 +959,6 @@ PH-PHX-CER1501#sh clock
                             peers[ip].flaps.push({ downDate: peers[ip].currentDownTime, downStr: peers[ip].currentDownStr, upDate: dateObj, upStr: timeStr || "Unknown Time", duration: durationMs });
                             peers[ip].currentDownTime = null; 
                         } else {
-                            // Handle orphaned UP log
                             peers[ip].flaps.push({ downDate: null, downStr: "Prior to log buffer", upDate: dateObj, upStr: timeStr || "Unknown Time", duration: -1 });
                         }
                     }
@@ -1030,7 +1042,7 @@ PH-PHX-CER1501#sh clock
 
             if (!hasVisiblePeers) {
                 let errorMsg = Object.keys(peers).length === 0 
-                    ? '> ERR: NO_VALID_BGP_DATA_FOUND' 
+                    ? '> ERR: NO_VALID_BGP/SLA_DATA_FOUND' 
                     : `> ERR: NO_OUTAGES_IN_LAST_${filterHours}_HOURS`;
                 resultsArea.innerHTML = `<p style="color: var(--danger-color); margin-top: 20px; font-weight: 700; font-size: var(--content-font-size);">${errorMsg}</p>`;
                 incidentSummaryArea.style.display = 'none';
@@ -1213,12 +1225,11 @@ PH-PHX-CER1501#sh clock
 
                         if (dateString !== currentDateStr) {
                             if (!isFirstDate) {
-                                timelineHtml += `</ul></div></div></div>`; // close previous date group
+                                timelineHtml += `</ul></div></div></div>`; 
                             }
                             
-                            dailyOutageCount = 1; // Reset counter for the new date
+                            dailyOutageCount = 1; 
                             
-                            // Open new date group (Collapsed by Default)
                             timelineHtml += `
                             <div class="date-group collapsed">
                                 <div class="date-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -1235,6 +1246,7 @@ PH-PHX-CER1501#sh clock
 
                         let displayTime = event.downDate ? (isUTC ? formatToPHT(event.downDate) : event.downStr) : "<span style='color: var(--warning-color);'>Prior to log buffer</span>";
                         let displayUpTime = event.upDate ? (isUTC ? formatToPHT(event.upDate) : event.upStr) : "N/A";
+                        let durationText = event.duration === -1 ? 'Unknown (Missing Down Log)' : formatDuration(event.duration);
                         
                         let intervalHtml = '';
                         if (idx > 0) {
@@ -1278,12 +1290,12 @@ PH-PHX-CER1501#sh clock
                                     </div>
                                     <div class="timeline-metric">
                                         <span class="timeline-label" style="color:var(--text-muted);">Duration:</span>
-                                        <span class="timeline-val"><strong style="color:var(--text-main); font-weight: 800;">${event.duration === -1 ? 'Unknown (Missing Down Log)' : formatDuration(event.duration)}</strong></span>
+                                        <span class="timeline-val"><strong style="color:var(--text-main); font-weight: 800;">${durationText}</strong></span>
                                     </div>
                                 </li>`;
                         }
                     });
-                    timelineHtml += `</ul></div></div></div>`; // close the last date group
+                    timelineHtml += `</ul></div></div></div>`; 
                 }
 
                 html += `
