@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🦉NOCOWL</title>
     
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🦉%3C/text%3E%3C/svg%3E">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -132,7 +134,7 @@
         }
         .gear-btn-box:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 
-        /* Cyberpunk Logo restored */
+        /* Cyberpunk Logo */
         .app-branding { display: flex; align-items: center; font-size: 28px; font-weight: 800; text-transform: uppercase; }
         .brand-text { color: var(--text-main); letter-spacing: 2px; text-shadow: 0 0 5px rgba(255, 255, 255, 0.1); }
         .brand-highlight {
@@ -888,6 +890,7 @@ PH-ABS-CER01#sh clock
                     if (line.includes('UTC')) isUTC = true;
                 }
                 
+                // Track max time to use as reference for X Hours filter
                 const logMatch = line.match(/(.*?)\s*(?:%BGP-5-ADJCHANGE|%TRACK-6-STATE)/i);
                 if (logMatch) {
                     let timeStr = logMatch[1].replace(/:\s*$/, '').replace(/^\*+/, '').trim(); 
@@ -995,9 +998,16 @@ PH-ABS-CER01#sh clock
             return `${mon} ${day} ${hr}:${min}:${sec}.${ms} PHT`;
         }
 
-        function getOrdinal(n) {
-            if (n % 100 >= 11 && n % 100 <= 13) return n + "th";
-            switch (n % 10) { case 1: return n + "st"; case 2: return n + "nd"; case 3: return n + "rd"; default: return n + "th"; }
+        // Fix grouping logic helper function to perfectly align Date Group dropdown logic with actual timestamp values
+        function getGroupDateString(dateObj, isUTC) {
+            if (!dateObj || isNaN(dateObj)) return "Unknown Date";
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            if (isUTC) {
+                const phtDate = new Date(dateObj.getTime() + (8 * 60 * 60 * 1000));
+                return `${months[phtDate.getUTCMonth()]} ${String(phtDate.getUTCDate()).padStart(2, '0')}, ${phtDate.getUTCFullYear()}`;
+            } else {
+                return `${months[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}, ${dateObj.getFullYear()}`;
+            }
         }
 
         // --- RENDER TABLE ---
@@ -1217,20 +1227,15 @@ PH-ABS-CER01#sh clock
                 } else {
                     allEvents.forEach((event, idx) => {
                         let refDate = event.isCurrentDown ? event.downDate : (event.downDate || event.upDate);
-                        let flapDateObj = isUTC ? new Date(refDate.getTime() + (8 * 60 * 60 * 1000)) : refDate;
-                        let dateString = "Unknown Date";
-                        if (!isNaN(flapDateObj)) {
-                            dateString = flapDateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-                        }
+                        let dateString = getGroupDateString(refDate, isUTC);
 
                         if (dateString !== currentDateStr) {
                             if (!isFirstDate) {
-                                timelineHtml += `</ul></div></div></div>`; // close previous date group
+                                timelineHtml += `</ul></div></div></div>`; 
                             }
                             
-                            dailyOutageCount = 1; // Reset counter for the new date
+                            dailyOutageCount = 1; 
                             
-                            // Open new date group (Collapsed by Default)
                             timelineHtml += `
                             <div class="date-group collapsed">
                                 <div class="date-header" onclick="this.parentElement.classList.toggle('collapsed')">
